@@ -8,7 +8,7 @@ The workspace is `C:\xampp1\htdocs\pharmacy`, so the application lives at this r
 
 ## Hosting path
 
-Default `.env` assumes XAMPP: `APP_BASE_PATH=/pharmacy` and `APP_URL=http://localhost/pharmacy`. Root `.htaccess` fronts `public/` and 301s old `/pharmacy/public/...` bookmarks. PHP's built-in server (`php -S localhost:8000 -t public`) should set `APP_BASE_PATH=/`.
+Default local `.env` uses `APP_BASE_PATH=/pharmacy`. Live (Hostinger subdomain at `https://pharmacy.eljira.com/`) must use `APP_BASE_PATH=/`. Root `.htaccess` fronts `public/` with no hardcoded RewriteBase so LiteSpeed does not rewrite-loop. PHP's built-in server (`php -S localhost:8000 -t public`) should set `APP_BASE_PATH=/`.
 
 Session cookies use path `/` so either URL style keeps the login session.
 

@@ -17,6 +17,25 @@ if (preg_match('#/public(/|$)#', $requestUri)) {
     exit;
 }
 
-$router = new Router();
-require dirname(__DIR__) . '/routes/web.php';
-$router->dispatch(Request::capture());
+try {
+    $router = new Router();
+    require dirname(__DIR__) . '/routes/web.php';
+    $router->dispatch(Request::capture());
+} catch (Throwable $e) {
+    $debug = filter_var(env('APP_DEBUG', 'false'), FILTER_VALIDATE_BOOLEAN);
+    error_log($e->getMessage() . "\n" . $e->getTraceAsString());
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+
+    if ($debug) {
+        echo '<h1>Server error</h1><pre>' . htmlspecialchars($e->getMessage() . "\n\n" . $e->getFile() . ':' . $e->getLine() . "\n\n" . $e->getTraceAsString(), ENT_QUOTES) . '</pre>';
+        exit;
+    }
+
+    try {
+        abort(500, 'Something went wrong.');
+    } catch (Throwable) {
+        echo '<h1>Server error</h1><p>Something went wrong.</p>';
+        exit;
+    }
+}

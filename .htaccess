@@ -1,15 +1,18 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /pharmacy/
 
-    # Old bookmarks: /pharmacy/public/... → /pharmacy/...
+    # Old XAMPP bookmarks only: /pharmacy/public/... → /pharmacy/...
     RewriteCond %{THE_REQUEST} \s/+pharmacy/public/ [NC]
     RewriteRule ^public(?:/(.*))?$ /pharmacy/$1 [R=301,L,QSA]
 
-    # Front everything through public/ (index.php + assets)
+    # Already rewritten into public/ — stop here so LiteSpeed cannot loop.
+    RewriteRule ^public/ - [L]
+
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
     RewriteRule ^$ public/index.php [L]
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
 
 DirectoryIndex index.php
-Options -Indexes

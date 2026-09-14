@@ -51,12 +51,15 @@ function app_base_path(): string
 {
     $configured = rtrim((string) env('APP_BASE_PATH', ''), '/');
 
-    if ($configured === '' || $configured === '/') {
-        $script = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
-        return $script === '/' ? '' : rtrim($script, '/');
+    if ($configured !== '' && $configured !== '/') {
+        return $configured;
     }
 
-    return $configured;
+    $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    $dir = rtrim(str_replace('\\', '/', dirname($script)), '/');
+    $dir = preg_replace('#/public$#', '', $dir) ?? $dir;
+
+    return ($dir === '' || $dir === '/') ? '' : $dir;
 }
 
 function url(string $path = ''): string

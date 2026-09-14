@@ -29,6 +29,29 @@ DB_PASS=
 
 If you use the PHP built-in server instead of XAMPP, set `APP_BASE_PATH=/` and `APP_URL=http://localhost:8000`.
 
+## Live (Hostinger / pharmacy.eljira.com)
+
+The site is at the domain root, not `/pharmacy`. In `.env` on the server:
+
+```
+APP_ENV=production
+APP_DEBUG=false
+APP_BASE_PATH=/
+APP_URL=https://pharmacy.eljira.com
+DB_HOST=localhost
+DB_NAME=your_database
+DB_USER=your_user
+DB_PASS=your_password
+```
+
+Then in hPanel:
+
+1. Set the domain PHP version to **8.2** or **8.3**.
+2. SSH (or hPanel terminal) in the project folder and run `composer install --no-dev --optimize-autoloader`.
+3. Point the document root at `public` if the panel allows it; otherwise leave the project in `public_html` and keep the root `.htaccess`.
+4. Run `php database/migrate.php` (and `php database/seed.php` only if you want demo data).
+5. Make `storage/logs`, `storage/cache`, and `public/uploads` writable.
+
 Create schema and demo data:
 
 ```bash
