@@ -1,0 +1,22 @@
+CREATE TABLE `users` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `branch_id` BIGINT UNSIGNED NOT NULL,
+  `role_id` BIGINT UNSIGNED NOT NULL,
+  `name` VARCHAR(120) NOT NULL,
+  `email` VARCHAR(160) NOT NULL UNIQUE,
+  `phone` VARCHAR(40) NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+  `last_login_at` DATETIME NULL,
+  `failed_login_count` INT NOT NULL DEFAULT 0,
+  `locked_until` DATETIME NULL,
+  `licence_number` VARCHAR(80) NULL,
+  `licence_expires_at` DATE NULL,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME NULL,
+  `created_by` BIGINT UNSIGNED NULL,
+  `updated_by` BIGINT UNSIGNED NULL,
+  CONSTRAINT `fk_users_branch` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_users_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

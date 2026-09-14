@@ -1,0 +1,28 @@
+{
+    "name": "plpharma/pharmacore",
+    "description": "PL PharmaCore — Pharmacy Wholesale & Retail Management System",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2",
+        "vlucas/phpdotenv": "^5.6",
+        "dompdf/dompdf": "^3.0",
+        "phpmailer/phpmailer": "^6.9",
+        "phpoffice/phpspreadsheet": "^2.0",
+        "guzzlehttp/guzzle": "^7.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "App\\Database\\Seeders\\": "database/seeders/"
+        },
+        "files": [
+            "app/Helpers/functions.php",
+            "app/Helpers/format.php"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

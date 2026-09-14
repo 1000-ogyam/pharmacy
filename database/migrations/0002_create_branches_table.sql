@@ -1,0 +1,15 @@
+CREATE TABLE `branches` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(120) NOT NULL,
+  `code` VARCHAR(20) NOT NULL UNIQUE,
+  `address` VARCHAR(255) NULL,
+  `city` VARCHAR(80) NULL,
+  `phone` VARCHAR(40) NULL,
+  `email` VARCHAR(120) NULL,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at` DATETIME NOT NULL,
+  `updated_at` DATETIME NOT NULL,
+  `deleted_at` DATETIME NULL,
+  `created_by` BIGINT UNSIGNED NULL,
+  `updated_by` BIGINT UNSIGNED NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /pharmacy/
+
+    # Old bookmarks: /pharmacy/public/... → /pharmacy/...
+    RewriteCond %{THE_REQUEST} \s/+pharmacy/public/ [NC]
+    RewriteRule ^public(?:/(.*))?$ /pharmacy/$1 [R=301,L,QSA]
+
+    # Front everything through public/ (index.php + assets)
+    RewriteRule ^$ public/index.php [L]
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+DirectoryIndex index.php
+Options -Indexes
