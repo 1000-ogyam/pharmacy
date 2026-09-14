@@ -14,6 +14,9 @@
         <img class="auth-card-logo" src="<?= e(asset('img/pl-logo.png')) ?>" alt="PL Pharmaceuticals Ltd">
         <h2>Sign in</h2>
         <p class="lead">Use your staff account to open the branch workspace.</p>
+        <?php if (!empty($dbWarning)): ?>
+            <div class="flash flash-error"><?= e((string) $dbWarning) ?></div>
+        <?php endif; ?>
         <?php \App\Core\View::include('partials.flash-messages'); ?>
         <form method="post" action="<?= e(url('/login')) ?>">
             <?= csrf_field() ?>

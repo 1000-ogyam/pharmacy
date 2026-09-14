@@ -22,10 +22,20 @@ try {
     require dirname(__DIR__) . '/routes/web.php';
     $router->dispatch(Request::capture());
 } catch (Throwable $e) {
-    $debug = filter_var(env('APP_DEBUG', 'false'), FILTER_VALIDATE_BOOLEAN);
+    $debug = (bool) config('app.debug', false);
     error_log($e->getMessage() . "\n" . $e->getTraceAsString());
     http_response_code(500);
     header('Content-Type: text/html; charset=utf-8');
+
+    $setup = database_setup_message($e);
+    if ($setup !== null) {
+        try {
+            abort(500, $setup);
+        } catch (Throwable) {
+            echo '<h1>Database error</h1><p>' . htmlspecialchars($setup, ENT_QUOTES) . '</p>';
+            exit;
+        }
+    }
 
     if ($debug) {
         echo '<h1>Server error</h1><pre>' . htmlspecialchars($e->getMessage() . "\n\n" . $e->getFile() . ':' . $e->getLine() . "\n\n" . $e->getTraceAsString(), ENT_QUOTES) . '</pre>';

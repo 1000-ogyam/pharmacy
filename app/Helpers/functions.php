@@ -175,6 +175,39 @@ function abort(int $code, string $message = ''): never
     exit;
 }
 
+function database_setup_message(\Throwable $e): ?string
+{
+    $msg = $e->getMessage();
+    $haystack = strtolower($msg);
+
+    if (
+        str_contains($haystack, 'database connection failed')
+        || str_contains($haystack, 'access denied')
+        || str_contains($haystack, 'unknown database')
+        || str_contains($haystack, 'could not find driver')
+        || str_contains($haystack, 'connection refused')
+        || str_contains($haystack, 'no such file or directory')
+        || str_contains($haystack, 'getaddrinfo')
+        || str_contains($haystack, 'sqlstate[hy000] [2002]')
+        || str_contains($haystack, 'sqlstate[hy000] [1044]')
+        || str_contains($haystack, 'sqlstate[hy000] [1045]')
+        || str_contains($haystack, 'sqlstate[hy000] [1049]')
+    ) {
+        return 'Cannot connect to the database. Check DB_HOST, DB_NAME, DB_USER and DB_PASS in .env. ' . $msg;
+    }
+
+    if (
+        str_contains($haystack, 'base table')
+        || str_contains($haystack, '42s02')
+        || str_contains($haystack, "doesn't exist")
+        || str_contains($haystack, 'no such table')
+    ) {
+        return 'Database tables are missing. On the server run: php database/migrate.php && php database/seed.php. ' . $msg;
+    }
+
+    return null;
+}
+
 function request_method(): string
 {
     $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
