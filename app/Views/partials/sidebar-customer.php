@@ -11,5 +11,6 @@
                 ['href' => '/portal/invoices', 'label' => 'Invoices'],
             ],
         ]); ?>
+        <?php \App\Core\View::include('partials.nav-help'); ?>
     </nav>
 </aside>

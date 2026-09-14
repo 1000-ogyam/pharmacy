@@ -14,5 +14,6 @@
                 ['href' => '/customers', 'label' => 'Patients'],
             ],
         ]); ?>
+        <?php \App\Core\View::include('partials.nav-help'); ?>
     </nav>
 </aside>

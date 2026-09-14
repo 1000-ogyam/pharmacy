@@ -12,5 +12,6 @@
                 ['href' => '/reports', 'label' => 'My sales'],
             ],
         ]); ?>
+        <?php \App\Core\View::include('partials.nav-help'); ?>
     </nav>
 </aside>

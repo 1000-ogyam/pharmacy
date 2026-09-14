@@ -24,6 +24,7 @@ use App\Controllers\StaffController;
 use App\Controllers\SupplierController;
 use App\Controllers\SupplierPortalController;
 use App\Controllers\UssdController;
+use App\Controllers\HelpController;
 use App\Controllers\WholesaleController;
 
 /** @var \App\Core\Router $router */
@@ -35,6 +36,7 @@ $router->get('/logout', [AuthController::class, 'logoutRedirect'])->middleware([
 $router->post('/logout', [AuthController::class, 'logout'])->middleware(['auth', 'csrf']);
 
 $router->post('/ussd/webhook', [UssdController::class, 'webhook']);
+$router->get('/help', [HelpController::class, 'index']);
 
 $staff = 'admin,cashier,pharmacist,warehouse,finance,wholesale';
 

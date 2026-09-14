@@ -31,6 +31,7 @@
             </div>
             <button class="btn btn-block btn-lg" type="submit">Sign in</button>
         </form>
+        <p class="auth-hint"><a href="<?= e(url('/help')) ?>">How to use PL PharmaCore</a></p>
         <?php if (config('app.debug')): ?>
         <p class="auth-hint">Demo: admin@plpharma.com / Password123!</p>
         <?php endif; ?>

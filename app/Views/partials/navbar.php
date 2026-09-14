@@ -12,6 +12,7 @@
             <span class="avatar"><?= e(strtoupper(substr((string) ($user->name ?? 'U'), 0, 1))) ?></span>
             <span class="user-name"><?= e($user->name ?? '') ?></span>
         </div>
+        <a class="btn btn-outline btn-sm" href="<?= e(url('/help')) ?>">Help</a>
         <form method="post" action="<?= e(url('/logout')) ?>" class="signout-form">
             <?= csrf_field() ?>
             <button class="btn btn-outline btn-sm" type="submit">Sign out</button>

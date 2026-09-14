@@ -84,6 +84,8 @@ Password for all users: `Password123!`
 | Finance | finance@plpharma.com |
 | Wholesale | wholesale@plpharma.com |
 
+**Staff how-to:** in the app open **Help**, or see [USER_GUIDE.md](USER_GUIDE.md).
+
 ## Cron (run locally)
 
 ```bash

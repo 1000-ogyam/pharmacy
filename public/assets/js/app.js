@@ -793,3 +793,45 @@
   seed();
   document.addEventListener('pharmacore:content', () => seed());
 })();
+
+(() => {
+  const panels = () => [...document.querySelectorAll('.help-acc')];
+  if (panels().length === 0) {
+    return;
+  }
+
+  const openHash = () => {
+    const id = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    if (!id) {
+      return;
+    }
+    const el = document.getElementById(id);
+    if (el && el.classList.contains('help-acc')) {
+      el.open = true;
+      el.scrollIntoView({ block: 'start' });
+    }
+  };
+
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('[data-help-expand]')) {
+      panels().forEach((panel) => { panel.open = true; });
+      return;
+    }
+    if (event.target.closest('[data-help-collapse]')) {
+      panels().forEach((panel) => { panel.open = false; });
+    }
+  });
+
+  document.querySelectorAll('.help-toc a').forEach((link) => {
+    link.addEventListener('click', () => {
+      const id = decodeURIComponent((link.getAttribute('href') || '').replace(/^#/, ''));
+      const el = document.getElementById(id);
+      if (el && el.classList.contains('help-acc')) {
+        el.open = true;
+      }
+    });
+  });
+
+  openHash();
+  window.addEventListener('hashchange', openHash);
+})();

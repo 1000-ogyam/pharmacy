@@ -14,5 +14,6 @@
                 ['href' => '/suppliers', 'label' => 'Suppliers'],
             ],
         ]); ?>
+        <?php \App\Core\View::include('partials.nav-help'); ?>
     </nav>
 </aside>

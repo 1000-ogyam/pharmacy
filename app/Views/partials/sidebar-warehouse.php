@@ -15,5 +15,6 @@
                 ['href' => '/returns', 'label' => 'Returns'],
             ],
         ]); ?>
+        <?php \App\Core\View::include('partials.nav-help'); ?>
     </nav>
 </aside>
