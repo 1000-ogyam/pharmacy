@@ -7,7 +7,10 @@ ob_start();
             <img src="<?= e(asset('img/pl-logo.png')) ?>" alt="PL Pharmaceuticals Ltd">
             <span>PL PharmaCore</span>
         </a>
-        <a class="btn btn-sm" href="<?= e(url('/login')) ?>">Sign in</a>
+        <div class="help-public-actions">
+            <?php \App\Core\View::include('partials.install-app'); ?>
+            <a class="btn btn-sm" href="<?= e(url('/login')) ?>">Sign in</a>
+        </div>
     </header>
     <div class="help-public-body">
         <?= $slot ?? $content ?? '' ?>

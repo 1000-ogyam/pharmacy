@@ -835,3 +835,64 @@
   openHash();
   window.addEventListener('hashchange', openHash);
 })();
+
+(() => {
+  const buttons = () => [...document.querySelectorAll('[data-install-app]')];
+  const sheet = document.querySelector('[data-install-sheet]');
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  let deferred = null;
+
+  const hideButtons = () => {
+    buttons().forEach((btn) => {
+      btn.hidden = true;
+    });
+  };
+
+  if (standalone) {
+    hideButtons();
+    return;
+  }
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferred = event;
+  });
+
+  window.addEventListener('appinstalled', hideButtons);
+
+  const openSheet = () => {
+    if (!sheet) {
+      return;
+    }
+    sheet.hidden = false;
+    document.body.classList.add('modal-open');
+  };
+
+  const closeSheet = () => {
+    if (!sheet) {
+      return;
+    }
+    sheet.hidden = true;
+    document.body.classList.remove('modal-open');
+  };
+
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('[data-install-sheet-close]')) {
+      closeSheet();
+      return;
+    }
+    const trigger = event.target.closest('[data-install-app]');
+    if (!trigger) {
+      return;
+    }
+    event.preventDefault();
+    if (deferred && typeof deferred.prompt === 'function') {
+      deferred.prompt();
+      deferred.userChoice.finally(() => {
+        deferred = null;
+      });
+      return;
+    }
+    openSheet();
+  });
+})();

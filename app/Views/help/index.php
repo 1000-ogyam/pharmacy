@@ -45,6 +45,7 @@ $sections = [
             <li>Open the site and enter the email and password your administrator gave you.</li>
             <li>Click <strong>Sign in</strong>. You land on Dashboard. The top bar shows your branch and name.</li>
             <li>Use <strong>Sign out</strong> when you leave the counter.</li>
+            <li>Use <strong>Click to install app</strong> to pin the workspace to a phone home screen or computer desktop.</li>
         </ol>
         <h3>If sign-in fails</h3>
         <ul>

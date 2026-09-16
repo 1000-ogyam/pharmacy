@@ -782,6 +782,7 @@ body.modal-open { overflow: hidden; }
   .grid-2, .grid-4 { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
   .user-name { display: none; }
+  .navbar-meta { flex-wrap: wrap; justify-content: flex-end; }
   .auth-wrap { height: auto; overflow: auto; }
   .auth-stage { grid-template-columns: 1fr; padding: 20px 18px 8px; }
   .auth-intro { grid-template-columns: 1fr; justify-items: center; text-align: center; }
@@ -874,11 +875,47 @@ body.modal-open { overflow: hidden; }
   font-weight: 600;
 }
 .help-public-brand img { height: 32px; width: auto; }
+.help-public-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .help-public-bar .btn { background: var(--color-teal); color: #fff; }
+.help-public-bar .btn-outline {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255,255,255,0.35);
+}
 .help-public-body { max-width: 920px; width: 100%; margin: 0 auto; padding: 24px 16px 40px; }
+.install-login { margin-top: 12px; }
+.install-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.install-sheet[hidden] { display: none; }
+.install-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 28, 42, 0.45);
+}
+.install-sheet-card {
+  position: relative;
+  width: min(440px, 100%);
+  background: var(--color-paper);
+  border-radius: var(--radius-base);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.install-sheet-card h3 { margin: 0 0 8px; font-size: 18px; }
+.install-sheet-card p,
+.install-sheet-card li { color: var(--color-grey); }
+.install-sheet-card ol { margin: 0 0 16px; padding-left: 18px; }
+@media (display-mode: standalone) {
+  [data-install-app] { display: none !important; }
+}
 
 @media print {
-  .sidebar, .navbar, .btn, .no-print, .app-modal-overlay, .sidebar-backdrop, .app-footer { display: none !important; }
+  .sidebar, .navbar, .btn, .no-print, .app-modal-overlay, .sidebar-backdrop, .app-footer, .install-sheet { display: none !important; }
   .app-shell { display: block; }
   .content { padding: 0; }
   .card { box-shadow: none; border: none; animation: none; }

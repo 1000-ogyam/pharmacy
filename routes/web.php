@@ -25,6 +25,7 @@ use App\Controllers\SupplierController;
 use App\Controllers\SupplierPortalController;
 use App\Controllers\UssdController;
 use App\Controllers\HelpController;
+use App\Controllers\PwaController;
 use App\Controllers\WholesaleController;
 
 /** @var \App\Core\Router $router */
@@ -37,6 +38,7 @@ $router->post('/logout', [AuthController::class, 'logout'])->middleware(['auth',
 
 $router->post('/ussd/webhook', [UssdController::class, 'webhook']);
 $router->get('/help', [HelpController::class, 'index']);
+$router->get('/manifest.webmanifest', [PwaController::class, 'manifest']);
 
 $staff = 'admin,cashier,pharmacist,warehouse,finance,wholesale';
 

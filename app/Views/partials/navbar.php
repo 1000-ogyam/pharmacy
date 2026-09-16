@@ -13,6 +13,7 @@
             <span class="user-name"><?= e($user->name ?? '') ?></span>
         </div>
         <a class="btn btn-outline btn-sm" href="<?= e(url('/help')) ?>">Help</a>
+        <?php \App\Core\View::include('partials.install-app'); ?>
         <form method="post" action="<?= e(url('/logout')) ?>" class="signout-form">
             <?= csrf_field() ?>
             <button class="btn btn-outline btn-sm" type="submit">Sign out</button>
