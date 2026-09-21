@@ -230,7 +230,7 @@ $sections = [
 <details class="help-acc" id="staff">
     <summary>Staff and licences</summary>
     <div class="help-acc-body">
-        <p>Admin only. Add staff with name, email, password, role, and branch. Optional pharmacist licence number and expiry. A <strong>Renew</strong> badge appears when a licence is due within 60 days. A user only works in the branch you assign.</p>
+        <p>Admin only. <strong>Add staff</strong> or <strong>Edit</strong> opens a popup: name, email, phone, password (optional when editing), role, branch, licence, portal customer/supplier links, and active status. Use <strong>Delete</strong> to archive an account (not your own). A <strong>Renew</strong> badge appears when a licence is due within 60 days.</p>
         <p class="help-jump"><a class="btn btn-sm" href="<?= e(url('/staff')) ?>">Staff</a></p>
     </div>
 </details>
