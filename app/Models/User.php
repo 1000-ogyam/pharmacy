@@ -52,4 +52,24 @@ class User extends Model
 
         return $this;
     }
+
+    public function forceDelete(): bool
+    {
+        $id = (int) ($this->attributes[$this->primaryKey] ?? 0);
+        if ($id <= 0) {
+            return false;
+        }
+
+        $before = $this->attributes;
+        Database::instance()->execute(
+            'DELETE FROM `users` WHERE `id` = :id',
+            [':id' => $id],
+        );
+
+        if ($this->audited) {
+            $this->afterSave('delete', $before, ['id' => $id]);
+        }
+
+        return true;
+    }
 }

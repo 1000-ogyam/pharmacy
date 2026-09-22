@@ -231,7 +231,7 @@ $sections = [
 <details class="help-acc" id="staff">
     <summary>Staff and licences</summary>
     <div class="help-acc-body">
-        <p>Admin and manager. <strong>Add staff</strong> or <strong>Edit</strong> opens a popup: name, email, phone, password (optional when editing), role, branch, licence, portal customer/supplier links, and active status. Email, phone, and portal links must be unique among active staff. Use <strong>Delete</strong> to archive an account (not your own). Managers cannot create or edit administrator or portal-only logins. A <strong>Renew</strong> badge appears when a licence is due within 60 days.</p>
+        <p>Admin and manager. <strong>Add staff</strong> or <strong>Edit</strong> opens a popup: name, email, phone, password (optional when editing), role, branch, licence, portal customer/supplier links, and active status. Email, phone, and portal links must be unique. <strong>Delete</strong> removes the account permanently (not your own). If delete is blocked because of past sales, uncheck <strong>Account active</strong> instead. Managers cannot create or edit administrator or portal-only logins. A <strong>Renew</strong> badge appears when a licence is due within 60 days.</p>
         <p class="help-jump"><a class="btn btn-sm" href="<?= e(url('/staff')) ?>">Staff</a></p>
     </div>
 </details>

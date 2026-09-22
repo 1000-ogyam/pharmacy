@@ -57,8 +57,11 @@ final class StaffController extends Controller
 
         $this->assertManagerMayManageRole((int) $data['role_id']);
 
+        $email = $this->normalizeEmail((string) $data['email']);
+        $this->purgeSoftDeletedUsersWithEmail($email, null);
+
         $duplicate = $this->duplicateMessage(
-            $this->normalizeEmail((string) $data['email']),
+            $email,
             $this->normalizePhone($request->input('phone')),
             $this->nullableInt($request->input('customer_id')),
             $this->nullableInt($request->input('supplier_id')),
@@ -114,8 +117,11 @@ final class StaffController extends Controller
 
         $this->assertManagerMayManageRole((int) $data['role_id']);
 
+        $email = $this->normalizeEmail((string) $data['email']);
+        $this->purgeSoftDeletedUsersWithEmail($email, $id);
+
         $duplicate = $this->duplicateMessage(
-            $this->normalizeEmail((string) $data['email']),
+            $email,
             $this->normalizePhone($request->input('phone')),
             $this->nullableInt($request->input('customer_id')),
             $this->nullableInt($request->input('supplier_id')),
@@ -157,8 +163,19 @@ final class StaffController extends Controller
         $staff = $this->findStaff($id);
         $this->assertManagerMayManageUser($staff);
 
-        $staff->delete();
-        $this->backWithSuccess('Staff member archived.', '/staff');
+        try {
+            $staff->forceDelete();
+        } catch (PDOException $e) {
+            if ($this->isForeignKeyViolation($e)) {
+                $this->backWithError(
+                    'This staff member cannot be deleted because they are linked to sales or other records. Deactivate the account instead.',
+                    '/staff',
+                );
+            }
+            throw $e;
+        }
+
+        $this->backWithSuccess('Staff member deleted permanently.', '/staff');
     }
 
     private function findStaff(int $id): User
@@ -230,10 +247,6 @@ final class StaffController extends Controller
             return 'That email is already in use by another staff account.';
         }
 
-        if ($this->emailArchived($email)) {
-            return 'That email belongs to an archived account. Use a different email or ask an admin to restore the old account.';
-        }
-
         if ($phoneDigits !== null && $this->phoneTaken($phoneDigits, $exceptId)) {
             return 'That phone number is already linked to another staff account.';
         }
@@ -279,12 +292,28 @@ final class StaffController extends Controller
         return Database::instance()->fetch($sql, $params) !== null;
     }
 
-    private function emailArchived(string $email): bool
+    private function purgeSoftDeletedUsersWithEmail(string $email, ?int $exceptId): void
     {
-        return Database::instance()->fetch(
-            'SELECT id FROM users WHERE LOWER(TRIM(email)) = :email AND deleted_at IS NOT NULL LIMIT 1',
+        $rows = Database::instance()->fetchAll(
+            'SELECT id FROM users WHERE LOWER(TRIM(email)) = :email AND deleted_at IS NOT NULL',
             [':email' => $email],
-        ) !== null;
+        );
+
+        foreach ($rows as $row) {
+            $purgeId = (int) ($row['id'] ?? 0);
+            if ($purgeId <= 0 || ($exceptId !== null && $purgeId === $exceptId)) {
+                continue;
+            }
+
+            try {
+                Database::instance()->execute(
+                    'DELETE FROM users WHERE id = :id AND deleted_at IS NOT NULL',
+                    [':id' => $purgeId],
+                );
+            } catch (PDOException) {
+                // Leave row; duplicate check will still block if email cannot be freed.
+            }
+        }
     }
 
     private function phoneTaken(string $phoneDigits, ?int $exceptId = null): bool
@@ -400,6 +429,18 @@ final class StaffController extends Controller
         }
 
         return str_contains(strtolower($e->getMessage()), 'duplicate');
+    }
+
+    private function isForeignKeyViolation(PDOException $e): bool
+    {
+        $code = (string) $e->getCode();
+        if ($code === '23000') {
+            return str_contains(strtolower($e->getMessage()), 'foreign key')
+                || str_contains(strtolower($e->getMessage()), '1451');
+        }
+
+        return str_contains(strtolower($e->getMessage()), 'foreign key')
+            || str_contains($e->getMessage(), '1451');
     }
 
     private function nullableInt(mixed $value): ?int

@@ -33,7 +33,7 @@
                 <td class="table-actions">
                     <a class="btn btn-outline btn-sm" data-modal data-modal-wide data-modal-title="Edit staff" href="<?= e(url('/staff/' . $row['id'] . '/edit')) ?>">Edit</a>
                     <?php if (!$isSelf): ?>
-                    <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this staff account? They will no longer be able to sign in." data-modal-title="Archive staff" data-action="<?= e(url('/staff/' . $row['id'])) ?>" data-method="DELETE">Delete</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Permanently delete this staff account? This cannot be undone." data-modal-title="Delete staff" data-action="<?= e(url('/staff/' . $row['id'])) ?>" data-method="DELETE">Delete</button>
                     <?php endif; ?>
                 </td>
             </tr>
