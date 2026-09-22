@@ -78,6 +78,7 @@ Password for all users: `Password123!`
 | Role | Email |
 |---|---|
 | Admin | admin@plpharma.com |
+| Manager | manager@plpharma.com |
 | Cashier | cashier@plpharma.com |
 | Pharmacist | pharmacist@plpharma.com |
 | Warehouse | warehouse@plpharma.com |

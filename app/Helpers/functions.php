@@ -271,6 +271,7 @@ function layout_for_role(?string $role = null): string
     $role ??= auth()->user()?->role_slug;
 
     return match ($role) {
+        'manager' => 'dashboard-manager',
         'cashier' => 'dashboard-retail',
         'pharmacist' => 'dashboard-pharmacist',
         'warehouse' => 'dashboard-warehouse',

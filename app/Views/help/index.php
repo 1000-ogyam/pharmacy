@@ -71,7 +71,8 @@ $sections = [
             <table class="data">
                 <thead><tr><th>Role</th><th>Typical work</th><th>Main menu</th></tr></thead>
                 <tbody>
-                    <tr><td>Admin</td><td>Full access</td><td>All modules</td></tr>
+                    <tr><td>Admin</td><td>Full access</td><td>All modules including SMS</td></tr>
+                    <tr><td>Manager</td><td>Branch leadership</td><td>Operations, staff, reports (no SMS)</td></tr>
                     <tr><td>Cashier</td><td>Retail counter</td><td>POS, Customers, My sales</td></tr>
                     <tr><td>Pharmacist</td><td>Dispensing</td><td>POS, Prescriptions, NHIS, Batches, Patients</td></tr>
                     <tr><td>Warehouse</td><td>Buying and stock</td><td>Stock, Batches, Products, Purchase orders, Suppliers, Returns</td></tr>
@@ -230,7 +231,7 @@ $sections = [
 <details class="help-acc" id="staff">
     <summary>Staff and licences</summary>
     <div class="help-acc-body">
-        <p>Admin only. <strong>Add staff</strong> or <strong>Edit</strong> opens a popup: name, email, phone, password (optional when editing), role, branch, licence, portal customer/supplier links, and active status. Use <strong>Delete</strong> to archive an account (not your own). A <strong>Renew</strong> badge appears when a licence is due within 60 days.</p>
+        <p>Admin and manager. <strong>Add staff</strong> or <strong>Edit</strong> opens a popup: name, email, phone, password (optional when editing), role, branch, licence, portal customer/supplier links, and active status. Email, phone, and portal links must be unique among active staff. Use <strong>Delete</strong> to archive an account (not your own). Managers cannot create or edit administrator or portal-only logins. A <strong>Renew</strong> badge appears when a licence is due within 60 days.</p>
         <p class="help-jump"><a class="btn btn-sm" href="<?= e(url('/staff')) ?>">Staff</a></p>
     </div>
 </details>

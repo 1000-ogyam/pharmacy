@@ -37,6 +37,7 @@ final class DemoDataSeeder
 
         $roles = [
             ['Admin', 'admin'],
+            ['Manager', 'manager'],
             ['Cashier', 'cashier'],
             ['Pharmacist', 'pharmacist'],
             ['Warehouse', 'warehouse'],
@@ -73,6 +74,7 @@ final class DemoDataSeeder
         $password = password_hash('Password123!', PASSWORD_DEFAULT);
         $users = [
             ['Admin User', 'admin@plpharma.com', 'admin'],
+            ['Mensah Manager', 'manager@plpharma.com', 'manager'],
             ['Ama Cashier', 'cashier@plpharma.com', 'cashier'],
             ['Kojo Pharmacist', 'pharmacist@plpharma.com', 'pharmacist'],
             ['Yaw Warehouse', 'warehouse@plpharma.com', 'warehouse'],
