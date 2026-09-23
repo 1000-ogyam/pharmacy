@@ -87,12 +87,12 @@ $router->group(['middleware' => ['auth', 'csrf']], function ($router) use ($staf
     $router->post('/returns', [ReturnController::class, 'store'])->middleware(['role:admin,manager,warehouse,pharmacist']);
 
     $router->get('/staff', [StaffController::class, 'index'])->middleware(['role:admin,manager']);
-    $router->get('/staff/create', [StaffController::class, 'create'])->middleware(['role:admin,manager']);
-    $router->post('/staff', [StaffController::class, 'store'])->middleware(['role:admin,manager']);
+    $router->get('/staff/create', [StaffController::class, 'create'])->middleware(['role:admin']);
+    $router->post('/staff', [StaffController::class, 'store'])->middleware(['role:admin']);
     $router->get('/staff/{id}/edit', [StaffController::class, 'edit'])->middleware(['role:admin,manager']);
     $router->put('/staff/{id}', [StaffController::class, 'update'])->middleware(['role:admin,manager']);
     $router->patch('/staff/{id}', [StaffController::class, 'update'])->middleware(['role:admin,manager']);
-    $router->delete('/staff/{id}', [StaffController::class, 'destroy'])->middleware(['role:admin,manager']);
+    $router->delete('/staff/{id}', [StaffController::class, 'destroy'])->middleware(['role:admin']);
 
     $router->get('/approvals', [ApprovalController::class, 'index'])->middleware(['role:admin,manager,finance']);
     $router->post('/approvals/{id}', [ApprovalController::class, 'decide'])->middleware(['role:admin,manager,finance']);

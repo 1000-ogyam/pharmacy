@@ -6,9 +6,11 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Request;
+use App\Models\Batch;
 use App\Models\Product;
 use App\Models\ProductPrice;
 use App\Models\ProductUnit;
+use App\Models\StockLevel;
 
 final class ProductController extends Controller
 {
@@ -55,7 +57,7 @@ final class ProductController extends Controller
             'sku' => $data['sku'],
             'barcode' => $request->input('barcode'),
             'name' => $data['name'],
-            'generic_name' => $request->input('generic_name'),
+            'generic_name' => null,
             'category' => $request->input('category'),
             'dosage_form' => $request->input('dosage_form'),
             'strength' => $request->input('strength'),
@@ -86,6 +88,28 @@ final class ProductController extends Controller
                 'unit_id' => $unit->id,
                 'price_type' => 'wholesale_tier1',
                 'price' => $request->input('wholesale_price'),
+            ]);
+        }
+
+        $branchId = auth()->branchId();
+        $quantity = max(0, (float) $request->input('quantity', 0));
+        if ($branchId !== null && $quantity > 0) {
+            $batchNumber = 'OPEN-' . strtoupper($data['sku']) . '-' . date('ymd');
+            Batch::create([
+                'product_id' => (int) $product->id,
+                'branch_id' => $branchId,
+                'batch_number' => $batchNumber,
+                'expiry_date' => date('Y-m-d', strtotime('+24 months')),
+                'manufacture_date' => date('Y-m-d'),
+                'quantity_received' => $quantity,
+                'quantity_remaining' => $quantity,
+                'unit_cost' => 0,
+            ]);
+            StockLevel::create([
+                'product_id' => (int) $product->id,
+                'branch_id' => $branchId,
+                'quantity' => $quantity,
+                'reorder_level' => 10,
             ]);
         }
 

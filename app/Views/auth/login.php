@@ -34,7 +34,7 @@
         <div class="install-login">
             <?php \App\Core\View::include('partials.install-app', ['installClass' => 'btn btn-outline', 'installBlock' => true]); ?>
         </div>
-        <p class="auth-hint"><a href="<?= e(url('/help')) ?>">How to use PL PharmaCore</a></p>
+        <p class="auth-hint"><a href="<?= e(url('/help')) ?>">How to use <?= e(config('app.name')) ?></a></p>
         <?php if (config('app.debug')): ?>
         <p class="auth-hint">Demo: admin@plpharma.com / Password123!</p>
         <?php endif; ?>

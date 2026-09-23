@@ -5,7 +5,7 @@ ob_start();
     <header class="help-public-bar">
         <a class="help-public-brand" href="<?= e(url('/login')) ?>">
             <img src="<?= e(asset('img/pl-logo.png')) ?>" alt="PL Pharmaceuticals Ltd">
-            <span>PL PharmaCore</span>
+            <span><?= e(config('app.name')) ?></span>
         </a>
         <div class="help-public-actions">
             <?php \App\Core\View::include('partials.install-app'); ?>

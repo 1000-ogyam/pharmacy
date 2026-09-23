@@ -37,6 +37,8 @@ final class StaffController extends Controller
 
     public function create(Request $request): never
     {
+        $this->assertAdminOnly();
+
         $this->view('staff.form', [
             'title' => 'Add staff',
             'pageTitle' => 'Add staff',
@@ -47,6 +49,8 @@ final class StaffController extends Controller
 
     public function store(Request $request): never
     {
+        $this->assertAdminOnly();
+
         $data = $this->validate($request->all(), [
             'name' => 'required',
             'email' => 'required|email',
@@ -156,6 +160,8 @@ final class StaffController extends Controller
 
     public function destroy(Request $request, int $id): never
     {
+        $this->assertAdminOnly();
+
         if ((int) auth()->id() === $id) {
             $this->backWithError('You cannot remove your own account while signed in.', '/staff');
         }
@@ -385,6 +391,13 @@ final class StaffController extends Controller
                     ':id' => (int) $row['id'],
                 ],
             );
+        }
+    }
+
+    private function assertAdminOnly(): void
+    {
+        if (!auth()->hasRole('admin')) {
+            abort(403, 'Only administrators can add or remove staff accounts.');
         }
     }
 

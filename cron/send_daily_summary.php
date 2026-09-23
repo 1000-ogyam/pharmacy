@@ -13,7 +13,7 @@ $row = Database::instance()->fetch(
 );
 
 $message = sprintf(
-    'PL PharmaCore daily summary: %d sales totalling %s.',
+    'PL Pharma daily summary: %d sales totalling %s.',
     (int) ($row['cnt'] ?? 0),
     money($row['total'] ?? 0)
 );

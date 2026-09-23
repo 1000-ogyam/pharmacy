@@ -1,10 +1,10 @@
-# PL PharmaCore — User manual
+# PL Pharma — User manual
 
 This guide is also in the app: open **Help** in the menu, or go to `/help` (live: [https://pharmacy.eljira.com/help](https://pharmacy.eljira.com/help)). That page has jump links and accordions.
 
 This markdown copy is for printing or sharing outside the system.
 
-This guide is for staff who sell, dispense, buy, deliver, or account for medicines in **PL PharmaCore**. Amounts are in **Ghana cedi (GHS)**.
+This guide is for staff who sell, dispense, buy, deliver, or account for medicines in **PL Pharma**. Amounts are in **Ghana cedi (GHS)**.
 
 Live site: [https://pharmacy.eljira.com/](https://pharmacy.eljira.com/)  
 Local (XAMPP): [http://localhost/pharmacy/](http://localhost/pharmacy/)

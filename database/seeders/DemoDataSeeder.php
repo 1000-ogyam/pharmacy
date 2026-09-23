@@ -242,7 +242,7 @@ final class DemoDataSeeder
             ['receipt', 'Hello {{customer_name}}, receipt {{invoice_no}} for {{amount}} at PL Pharma. Thank you.'],
             ['invoice', 'Invoice {{invoice_no}} totalling {{amount}} is ready.'],
             ['expiry_alert', 'Batch alert: {{product_name}} batch {{batch_number}} expires {{expiry_date}}.'],
-            ['otp', 'Your PL PharmaCore OTP is {{otp}}.'],
+            ['otp', 'Your PL Pharma OTP is {{otp}}.'],
         ];
         foreach ($templates as [$key, $body]) {
             SmsTemplate::create(['key' => $key, 'body' => $body, 'is_active' => 1]);

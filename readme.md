@@ -1,4 +1,4 @@
-# PL PharmaCore
+# PL Pharma
 
 Pharmacy wholesale and retail management for PL Pharmaceuticals (Ghana). Custom PHP 8.2 MVC, MySQL 8, single front controller.
 

@@ -31,7 +31,7 @@ final class UssdService
                 ]
             );
 
-            return "CON PL PharmaCore\n1. Check order status\n2. Reorder last items\n3. Opt out of SMS";
+            return "CON PL Pharma\n1. Check order status\n2. Reorder last items\n3. Opt out of SMS";
         }
 
         $menu = (string) $session['current_menu'];
@@ -65,6 +65,6 @@ final class UssdService
             return ['menu' => 'end', 'text' => 'END Invoice ' . $input . ' is being looked up. You will receive an SMS update.'];
         }
 
-        return ['menu' => 'end', 'text' => 'END Thank you for using PL PharmaCore.'];
+        return ['menu' => 'end', 'text' => 'END Thank you for using PL Pharma.'];
     }
 }

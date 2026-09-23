@@ -21,15 +21,15 @@ final class PwaController extends Controller
         header('Cache-Control: public, max-age=3600');
         echo json_encode([
             'id' => $start,
-            'name' => (string) config('app.name', 'PL PharmaCore'),
-            'short_name' => 'PharmaCore',
-            'description' => 'PL Pharmaceuticals wholesale and retail workspace',
+            'name' => (string) config('app.name', 'PL Pharma'),
+            'short_name' => 'PL Pharma',
+            'description' => 'PL Pharma wholesale and retail workspace',
             'start_url' => $start,
             'scope' => $start,
             'display' => 'standalone',
             'orientation' => 'any',
-            'background_color' => '#f4efe6',
-            'theme_color' => '#1c2b26',
+            'background_color' => '#ffffff',
+            'theme_color' => '#1565c0',
             'lang' => 'en-GH',
             'icons' => [
                 ['src' => $icon192, 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],

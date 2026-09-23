@@ -12,7 +12,11 @@
         <div class="form-row"><label>SKU</label><input name="sku" value="<?= e(old('sku', $product?->sku ?? '')) ?>" required></div>
         <div class="form-row"><label>Barcode</label><input name="barcode" value="<?= e(old('barcode', $product?->barcode ?? '')) ?>"></div>
         <div class="form-row full"><label>Name</label><input name="name" value="<?= e(old('name', $product?->name ?? '')) ?>" required></div>
-        <div class="form-row"><label>Generic name</label><input name="generic_name" value="<?= e(old('generic_name', $product?->generic_name ?? '')) ?>"></div>
+        <?php if ($product): ?>
+        <div class="form-row"><label>Generic name</label><input name="generic_name" value="<?= e(old('generic_name', $product->generic_name ?? '')) ?>"></div>
+        <?php else: ?>
+        <div class="form-row"><label>Quantity</label><input name="quantity" type="number" min="0" step="1" value="<?= e(old('quantity', '0')) ?>" placeholder="Opening stock at your branch"></div>
+        <?php endif; ?>
         <div class="form-row"><label>Category</label><input name="category" value="<?= e(old('category', $product?->category ?? '')) ?>"></div>
         <div class="form-row"><label>Dosage form</label><input name="dosage_form" value="<?= e(old('dosage_form', $product?->dosage_form ?? '')) ?>"></div>
         <div class="form-row"><label>Strength</label><input name="strength" value="<?= e(old('strength', $product?->strength ?? '')) ?>"></div>

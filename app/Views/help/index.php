@@ -23,7 +23,7 @@ $sections = [
 <div class="page-head">
     <div>
         <p class="eyebrow">Manual</p>
-        <h2>How to use PL PharmaCore</h2>
+        <h2>How to use <?= e(config('app.name')) ?></h2>
         <p>Jump to a topic, or open a section. Amounts are in Ghana cedi (GHS). You only work in your own branch.</p>
     </div>
     <div class="help-toolbar no-print">
@@ -156,7 +156,7 @@ $sections = [
     <div class="help-acc-body">
         <p>Stock does <strong>not</strong> go up when you save a product or a purchase order. It goes up only after a verified goods receipt.</p>
         <h3>Products</h3>
-        <p>New product needs SKU, name, and retail price. You can set wholesale price, barcode, generic name, and flags for prescription-only or controlled items.</p>
+        <p>New product needs SKU, name, and retail price. Set <strong>Quantity</strong> for opening stock at your branch (creates a batch for POS). You can set wholesale price, barcode, and flags for prescription-only or controlled items. Edit a product later to add a generic name.</p>
         <h3>Stock levels</h3>
         <p>On-hand quantity, reorder level, and status: OK, Low, or Out. <strong>Transfer stock</strong> moves FEFO quantity to another branch. You cannot transfer more than you have.</p>
         <h3>Batches</h3>
@@ -231,7 +231,7 @@ $sections = [
 <details class="help-acc" id="staff">
     <summary>Staff and licences</summary>
     <div class="help-acc-body">
-        <p>Admin and manager. <strong>Add staff</strong> or <strong>Edit</strong> opens a popup: name, email, phone, password (optional when editing), role, branch, licence, portal customer/supplier links, and active status. Email, phone, and portal links must be unique. <strong>Delete</strong> removes the account permanently (not your own). If delete is blocked because of past sales, uncheck <strong>Account active</strong> instead. Managers cannot create or edit administrator or portal-only logins. A <strong>Renew</strong> badge appears when a licence is due within 60 days.</p>
+        <p>Administrators can <strong>Add staff</strong> or <strong>Delete</strong> (permanent). Managers may <strong>Edit</strong> existing staff only. The popup covers name, email, phone, password (optional when editing), role, branch, licence, portal links, and active status. Email, phone, and portal links must be unique. If delete is blocked because of past sales, uncheck <strong>Account active</strong> instead. Managers cannot assign administrator or portal-only roles. A <strong>Renew</strong> badge appears when a licence is due within 60 days.</p>
         <p class="help-jump"><a class="btn btn-sm" href="<?= e(url('/staff')) ?>">Staff</a></p>
     </div>
 </details>
