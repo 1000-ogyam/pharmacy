@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Database;
 use App\Core\Request;
 use App\Models\Batch;
 use App\Models\Product;
@@ -18,13 +19,22 @@ final class ProductController extends Controller
     {
         $page = (int) $request->query('page', 1);
         $q = trim((string) $request->query('q', ''));
-        $query = Product::query()->orderBy('name');
 
         if ($q !== '') {
-            $query->where('name', 'LIKE', '%' . $q . '%');
+            [$likeSql, $likeParams] = sql_like_or(
+                ['name', 'sku', 'barcode', 'generic_name'],
+                $q,
+                'prod_q',
+            );
+            $result = Database::instance()->paginate(
+                'SELECT * FROM products WHERE deleted_at IS NULL AND ' . $likeSql . ' ORDER BY name',
+                $likeParams,
+                $page,
+            );
+            $result['data'] = array_map(static fn(array $row): Product => new Product($row), $result['data']);
+        } else {
+            $result = Product::query()->orderBy('name')->paginate(per_page(), $page);
         }
-
-        $result = $query->paginate(per_page(), $page);
 
         $this->view('products.index', [
             'title' => 'Products',

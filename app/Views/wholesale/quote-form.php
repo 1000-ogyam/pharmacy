@@ -8,10 +8,20 @@
     <div class="form-row">
         <label>Customer</label>
         <select name="customer_id" required>
+            <option value="">— Select customer —</option>
             <?php foreach ($customers as $customer): ?>
-                <option value="<?= (int) $customer->id ?>"><?= e($customer->name) ?></option>
+                <?php
+                    $creditLimit = (float) $customer->credit_limit;
+                    $creditHint = $creditLimit > 0
+                        ? ' · credit ' . money($customer->availableCredit()) . ' avail'
+                        : ' · no credit account';
+                ?>
+                <option value="<?= (int) $customer->id ?>"><?= e($customer->name) ?> (<?= e($customer->type) ?><?= e($creditHint) ?>)</option>
             <?php endforeach; ?>
         </select>
+        <?php if (count($customers) === 0): ?>
+            <div class="help" style="color:var(--color-muted);margin-top:8px;">No active customers at this branch. Add one under Customers first.</div>
+        <?php endif; ?>
     </div>
     <div class="line-editor" data-line-table>
         <div class="table-wrap">

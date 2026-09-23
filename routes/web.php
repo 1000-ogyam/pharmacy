@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Controllers\AccountingController;
+use App\Controllers\ArchiveController;
 use App\Controllers\ApprovalController;
 use App\Controllers\AuthController;
 use App\Controllers\BatchController;
@@ -19,6 +20,7 @@ use App\Controllers\ProductController;
 use App\Controllers\PurchaseOrderController;
 use App\Controllers\ReportController;
 use App\Controllers\ReturnController;
+use App\Controllers\SaleController;
 use App\Controllers\SmsController;
 use App\Controllers\StaffController;
 use App\Controllers\SupplierController;
@@ -50,6 +52,17 @@ $router->group(['middleware' => ['auth', 'csrf']], function ($router) use ($staf
     $router->post('/pos/sale', [PosController::class, 'checkout'])->middleware(['role:admin,manager,cashier,pharmacist']);
     $router->get('/pos/receipt/{id}', [PosController::class, 'receipt'])->middleware(['role:admin,manager,cashier,pharmacist,finance']);
 
+    $router->get('/sales', [SaleController::class, 'index'])->middleware(['role:admin,manager']);
+    $router->get('/sales/{id}', [SaleController::class, 'show'])->middleware(['role:admin,manager']);
+    $router->get('/sales/{id}/edit', [SaleController::class, 'edit'])->middleware(['role:admin']);
+    $router->put('/sales/{id}', [SaleController::class, 'update'])->middleware(['role:admin']);
+    $router->patch('/sales/{id}', [SaleController::class, 'update'])->middleware(['role:admin']);
+    $router->delete('/sales/{id}', [SaleController::class, 'destroy'])->middleware(['role:admin']);
+
+    $router->get('/archives', [ArchiveController::class, 'index'])->middleware(['role:admin,manager']);
+    $router->post('/archives/{type}/{id}/restore', [ArchiveController::class, 'restore'])->middleware(['role:admin']);
+    $router->delete('/archives/{type}/{id}', [ArchiveController::class, 'destroy'])->middleware(['role:admin']);
+
     $router->resource('/products', ProductController::class)->middleware(['role:admin,manager,warehouse,wholesale']);
     $router->get('/inventory', [InventoryController::class, 'index'])->middleware(['role:admin,manager,warehouse,pharmacist']);
     $router->get('/inventory/batches', [BatchController::class, 'index'])->middleware(['role:admin,manager,warehouse,pharmacist']);
@@ -66,6 +79,7 @@ $router->group(['middleware' => ['auth', 'csrf']], function ($router) use ($staf
     $router->get('/wholesale/quotations/create', [WholesaleController::class, 'createQuote'])->middleware(['role:admin,manager,wholesale']);
     $router->post('/wholesale/quotations', [WholesaleController::class, 'storeQuote'])->middleware(['role:admin,manager,wholesale']);
     $router->post('/wholesale/quotations/{id}/convert', [WholesaleController::class, 'convert'])->middleware(['role:admin,manager,wholesale']);
+    $router->delete('/wholesale/quotations/{id}', [WholesaleController::class, 'destroyQuote'])->middleware(['role:admin']);
 
     $router->get('/prescriptions', [PrescriptionController::class, 'index'])->middleware(['role:admin,manager,pharmacist']);
     $router->get('/prescriptions/create', [PrescriptionController::class, 'create'])->middleware(['role:admin,manager,pharmacist']);

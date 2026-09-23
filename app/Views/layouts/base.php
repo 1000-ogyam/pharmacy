@@ -30,7 +30,7 @@ $slot = $slot ?? $content ?? '';
 <body>
     <?= $slot ?>
     <?php \App\Core\View::include('partials.install-sheet'); ?>
-    <script src="<?= e(asset('js/app.js')) ?>?v=4"></script>
+    <script src="<?= e(asset('js/app.js')) ?>?v=5"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register(<?= json_encode(url('/sw.js')) ?>, { scope: <?= json_encode(url('/')) ?> }).catch(function () {});

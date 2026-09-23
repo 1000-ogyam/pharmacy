@@ -68,7 +68,11 @@ final class WholesaleController extends Controller
         $this->view('wholesale.quote-form', [
             'title' => 'New quotation',
             'pageTitle' => 'New quotation',
-            'customers' => Customer::where('type', 'wholesale')->where('branch_id', $branchId)->orderBy('name')->get(),
+            'customers' => Customer::query()
+                ->where('is_active', 1)
+                ->where('branch_id', $branchId)
+                ->orderBy('name')
+                ->get(),
             'products' => $products,
         ]);
     }
@@ -131,35 +135,34 @@ final class WholesaleController extends Controller
 
     public function convert(Request $request, int $id): never
     {
-        $quote = Quotation::findOrFail($id);
-        $this->assertSameBranch($quote);
-
-        if ($quote->status === 'converted') {
-            $this->backWithError('This quotation has already been converted.', '/wholesale');
-        }
-
-        $customer = Customer::findOrFail((int) $quote->customer_id);
-        $this->assertSameBranch($customer);
-
-        if ($customer->availableCredit() < (float) $quote->total && (float) $quote->total > 0) {
-            $this->backWithError('Customer credit limit is insufficient to convert this quotation.', '/wholesale');
-        }
-
-        $items = QuotationItem::where('quotation_id', (int) $quote->id)->get();
-        if ($items === []) {
-            $this->backWithError('This quotation has no lines to convert.', '/wholesale');
-        }
-
-        $branchId = $this->branchId();
-        $stock = new StockService();
-        $needed = [];
-
-        foreach ($items as $item) {
-            $productId = (int) $item->product_id;
-            $needed[$productId] = ($needed[$productId] ?? 0.0) + (float) $item->quantity;
-        }
-
         try {
+            $quote = Quotation::findOrFail($id);
+            $this->assertSameBranch($quote);
+
+            if ((string) $quote->status === 'converted') {
+                $this->backWithError('This quotation has already been converted.', '/wholesale');
+            }
+
+            $customer = Customer::findOrFail((int) $quote->customer_id);
+            $this->assertSameBranch($customer);
+
+            $total = (float) $quote->total;
+            $creditUsed = $this->creditToApplyOnConvert($customer, $total);
+
+            $items = QuotationItem::where('quotation_id', (int) $quote->id)->get();
+            if ($items === []) {
+                $this->backWithError('This quotation has no lines to convert.', '/wholesale');
+            }
+
+            $branchId = $this->branchId();
+            $stock = new StockService();
+            $needed = [];
+
+            foreach ($items as $item) {
+                $productId = (int) $item->product_id;
+                $needed[$productId] = ($needed[$productId] ?? 0.0) + (float) $item->quantity;
+            }
+
             foreach ($needed as $productId => $qty) {
                 $available = $stock->available($productId, $branchId);
                 if ($available + 0.0001 < $qty) {
@@ -186,8 +189,8 @@ final class WholesaleController extends Controller
                     'subtotal' => $quote->subtotal,
                     'discount' => $quote->discount,
                     'tax' => $quote->tax,
-                    'total' => $quote->total,
-                    'credit_used' => $quote->total,
+                    'total' => $total,
+                    'credit_used' => $creditUsed,
                 ]);
 
                 foreach ($items as $item) {
@@ -205,7 +208,12 @@ final class WholesaleController extends Controller
                     $stock->decreaseFromAllocation($allocation, (int) $item->product_id, $branchId);
                 }
 
-                $customer->update(['credit_balance' => (float) $customer->credit_balance + (float) $quote->total]);
+                if ($creditUsed > 0) {
+                    $customer->update([
+                        'credit_balance' => (float) $customer->credit_balance + $creditUsed,
+                    ]);
+                }
+
                 $quote->update(['status' => 'converted']);
 
                 Invoice::create([
@@ -217,7 +225,7 @@ final class WholesaleController extends Controller
                     'status' => 'issued',
                     'subtotal' => $quote->subtotal,
                     'tax' => $quote->tax,
-                    'total' => $quote->total,
+                    'total' => $total,
                     'due_date' => date('Y-m-d', strtotime('+30 days')),
                 ]);
 
@@ -226,10 +234,57 @@ final class WholesaleController extends Controller
                 $db->rollBack();
                 throw $e;
             }
-        } catch (RuntimeException $e) {
+        } catch (\Throwable $e) {
             $this->backWithError($e->getMessage(), '/wholesale');
         }
 
         $this->backWithSuccess('Quotation converted to a wholesale order and invoice.', '/wholesale');
+    }
+
+    private function creditToApplyOnConvert(Customer $customer, float $total): float
+    {
+        if ($total <= 0) {
+            return 0.0;
+        }
+
+        $creditLimit = (float) $customer->credit_limit;
+        if ($creditLimit <= 0) {
+            return 0.0;
+        }
+
+        if ($customer->availableCredit() + 0.01 < $total) {
+            throw new RuntimeException(
+                'Customer credit limit is insufficient to convert this quotation. '
+                . 'Available credit: ' . money($customer->availableCredit()) . '.'
+            );
+        }
+
+        return $total;
+    }
+
+    public function destroyQuote(Request $request, int $id): never
+    {
+        if (!auth()->hasRole('admin')) {
+            abort(403, 'Only administrators can delete quotations.');
+        }
+
+        $quote = Quotation::findOrFail($id);
+        $this->assertSameBranch($quote);
+
+        if ((string) $quote->status === 'converted') {
+            $linked = Database::instance()->fetch(
+                'SELECT id FROM wholesale_orders WHERE quotation_id = :qid AND deleted_at IS NULL LIMIT 1',
+                [':qid' => (int) $quote->id],
+            );
+            if ($linked !== null) {
+                $this->backWithError(
+                    'This quotation was converted to an order. Archive the order first or leave the quotation on file.',
+                    '/wholesale',
+                );
+            }
+        }
+
+        $quote->delete();
+        $this->backWithSuccess('Quotation archived.', '/wholesale');
     }
 }

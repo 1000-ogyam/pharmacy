@@ -6,13 +6,12 @@
     </div>
 </div>
 
-<div class="pos-layout" data-pos>
+<div class="pos-layout" data-pos data-pos-search-url="<?= e(url('/pos/search')) ?>">
     <div class="card pos-catalogue">
         <div class="card-body">
             <div class="pos-toolbar">
-                <form class="searchbar" method="get" action="<?= e(url('/pos')) ?>">
-                    <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search name, SKU, barcode…">
-                    <button class="btn" type="submit">Search</button>
+                <form class="searchbar" method="get" action="<?= e(url('/pos')) ?>" data-pos-search-form>
+                    <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search name, SKU, barcode…" data-pos-search autocomplete="off">
                 </form>
                 <div class="view-toggle" role="group" aria-label="Product layout">
                     <button type="button" class="icon-btn is-active" data-pos-view="grid" title="Grid view" aria-label="Grid view">

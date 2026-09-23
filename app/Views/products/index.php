@@ -7,11 +7,11 @@
 </div>
 <div class="card">
     <div class="card-body">
-        <form class="searchbar" method="get">
-            <input type="search" name="q" value="<?= e($q ?? '') ?>" placeholder="Search products">
-            <button class="btn" type="submit">Search</button>
+        <form class="searchbar" method="get" data-live-search data-live-search-target="[data-live-results]">
+            <input type="search" name="q" value="<?= e($q ?? '') ?>" placeholder="Search products" autocomplete="off">
         </form>
     </div>
+    <div data-live-results>
     <div class="table-wrap">
         <table class="data">
             <thead><tr><th>SKU</th><th>Name</th><th>Category</th><th>Rx</th><th></th></tr></thead>
@@ -32,4 +32,5 @@
         </table>
     </div>
     <?php \App\Core\View::include('partials.pagination', ['page' => $page, 'pages' => $pages, 'base' => '/products']); ?>
+    </div>
 </div>

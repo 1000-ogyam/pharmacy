@@ -138,6 +138,55 @@ abstract class Model
         return true;
     }
 
+    public function restore(): bool
+    {
+        if (!$this->softDeletes) {
+            throw new \RuntimeException('Restore is not supported on ' . static::class . '.');
+        }
+
+        if (empty($this->attributes[$this->primaryKey])) {
+            return false;
+        }
+
+        $before = $this->attributes;
+        $this->attributes['deleted_at'] = null;
+
+        if ($this->timestamps) {
+            $this->attributes['updated_at'] = date('Y-m-d H:i:s');
+        }
+
+        if ($this->audited && auth()->id() !== null) {
+            $this->attributes['updated_by'] = auth()->id();
+        }
+
+        $this->updateRow();
+        $this->afterSave('restore', $before, $this->attributes);
+        $this->original = $this->attributes;
+
+        return true;
+    }
+
+    public function forceDelete(): bool
+    {
+        if (empty($this->attributes[$this->primaryKey])) {
+            return false;
+        }
+
+        $before = $this->attributes;
+        $id = (int) $this->attributes[$this->primaryKey];
+
+        Database::instance()->execute(
+            'DELETE FROM `' . $this->getTable() . '` WHERE `' . $this->primaryKey . '` = :id',
+            [':id' => $id],
+        );
+
+        if ($this->audited) {
+            $this->afterSave('delete', $before, ['id' => $id]);
+        }
+
+        return true;
+    }
+
     public function toArray(): array
     {
         return $this->attributes;

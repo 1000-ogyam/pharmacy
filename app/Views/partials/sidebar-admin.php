@@ -8,6 +8,7 @@
             'icon' => 'M6 7h12l-1 11H7L6 7zm3-3h6l1 3H8l1-3z',
             'links' => [
                 ['href' => '/pos', 'label' => 'Retail POS'],
+                ['href' => '/sales', 'label' => 'Sales history'],
                 ['href' => '/wholesale', 'label' => 'Wholesale'],
                 ['href' => '/customers', 'label' => 'Customers'],
                 ['href' => '/credit', 'label' => 'Credit'],
@@ -42,6 +43,7 @@
                 ['href' => '/deliveries', 'label' => 'Deliveries'],
                 ['href' => '/returns', 'label' => 'Returns'],
                 ['href' => '/approvals', 'label' => 'Approvals'],
+                ['href' => '/archives', 'label' => 'Archives'],
                 ['href' => '/staff', 'label' => 'Staff'],
             ],
         ]); ?>

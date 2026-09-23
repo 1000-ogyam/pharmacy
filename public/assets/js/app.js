@@ -392,6 +392,71 @@
     }
   });
 
+  const searchInput = root.querySelector('[data-pos-search]');
+  const searchUrl = root.getAttribute('data-pos-search-url');
+  let searchTimer;
+
+  const formatQty = (value) => {
+    const n = Number(value);
+    if (Number.isNaN(n)) {
+      return '0';
+    }
+    return n % 1 === 0 ? String(n) : n.toFixed(2);
+  };
+
+  const renderProducts = (products) => {
+    if (!productsEl) {
+      return;
+    }
+    if (!products.length) {
+      productsEl.innerHTML = '<div class="empty">No products match that search.</div>';
+      return;
+    }
+    const attr = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    productsEl.innerHTML = products.map((product) => {
+      const meta = [product.sku, product.strength || product.dosage_form].filter(Boolean).join(' · ');
+      return `<button type="button" class="pos-product" data-pos-add data-id="${Number(product.id)}" data-name="${attr(product.name)}" data-price="${Number(product.price || 0)}" data-stock="${Number(product.stock || 0)}">
+        <div class="pos-product-main">
+          <strong>${escapeHtml(product.name || '')}</strong>
+          <span class="pos-product-meta">${escapeHtml(meta)}</span>
+        </div>
+        <div class="pos-product-side">
+          <span class="pos-product-price">${money(Number(product.price || 0))}</span>
+          <span class="pos-product-stock">Stock ${formatQty(product.stock)}</span>
+        </div>
+      </button>`;
+    }).join('');
+  };
+
+  const runPosSearch = async (term) => {
+    if (!searchUrl) {
+      return;
+    }
+    const url = new URL(searchUrl, window.location.origin);
+    url.searchParams.set('q', term);
+    try {
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      const payload = await response.json();
+      if (payload.ok && Array.isArray(payload.data)) {
+        renderProducts(payload.data);
+      }
+    } catch (e) {
+      /* keep current catalogue on network errors */
+    }
+  };
+
+  searchInput?.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => runPosSearch(searchInput.value.trim()), 280);
+  });
+
+  root.querySelector('[data-pos-search-form]')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    runPosSearch(searchInput?.value.trim() || '');
+  });
+
   render();
 })();
 
@@ -894,5 +959,66 @@
       return;
     }
     openSheet();
+  });
+})();
+
+(() => {
+  const debounceMs = 320;
+
+  const bindLiveSearch = (form) => {
+    if (form.dataset.liveSearchBound === '1') {
+      return;
+    }
+    form.dataset.liveSearchBound = '1';
+
+    const input = form.querySelector('input[name="q"], input[type="search"]');
+    if (!input) {
+      return;
+    }
+
+    const targetSelector = form.getAttribute('data-live-search-target') || '[data-live-results]';
+    let timer;
+
+    const refresh = async () => {
+      const action = form.getAttribute('action') || window.location.pathname;
+      const url = new URL(action, window.location.origin);
+      new FormData(form).forEach((value, key) => {
+        if (String(value) !== '') {
+          url.searchParams.set(key, String(value));
+        }
+      });
+      url.searchParams.set('q', input.value);
+
+      try {
+        const response = await fetch(url.toString(), {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const next = doc.querySelector(targetSelector);
+        const current = document.querySelector(targetSelector);
+        if (next && current) {
+          current.innerHTML = next.innerHTML;
+        }
+        window.history.replaceState({}, '', url.pathname + url.search);
+      } catch (e) {
+        /* ignore */
+      }
+    };
+
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(refresh, debounceMs);
+    });
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      refresh();
+    });
+  };
+
+  document.querySelectorAll('form[data-live-search]').forEach(bindLiveSearch);
+  document.addEventListener('pharmacore:content', () => {
+    document.querySelectorAll('form[data-live-search]').forEach(bindLiveSearch);
   });
 })();

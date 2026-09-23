@@ -4,6 +4,8 @@ $sections = [
     ['id' => 'roles', 'title' => 'Who can do what'],
     ['id' => 'dashboard', 'title' => 'Dashboard'],
     ['id' => 'pos', 'title' => 'Retail POS'],
+    ['id' => 'sales-history', 'title' => 'Sales history'],
+    ['id' => 'archives', 'title' => 'Archives'],
     ['id' => 'customers', 'title' => 'Customers & credit'],
     ['id' => 'wholesale', 'title' => 'Wholesale'],
     ['id' => 'inventory', 'title' => 'Products & stock'],
@@ -118,6 +120,23 @@ $sections = [
     </div>
 </details>
 
+<details class="help-acc" id="sales-history">
+    <summary>Sales history</summary>
+    <div class="help-acc-body">
+        <p>Admin and manager. Open <strong>Sales history</strong> under Sales to browse receipts at your branch. Filter by date or search receipt number, customer, or cashier.</p>
+        <p>Managers can <strong>View</strong> and open the printable receipt. Administrators can also <strong>Edit</strong> notes or mark a sale <strong>Cancelled</strong> (stock is restored) or <strong>Archive</strong> (moves the sale to Archives). New sales are run from <strong>Retail POS</strong>.</p>
+        <p class="help-jump"><a class="btn btn-sm" href="<?= e(url('/sales')) ?>">Sales history</a></p>
+    </div>
+</details>
+
+<details class="help-acc" id="archives">
+    <summary>Archives</summary>
+    <div class="help-acc-body">
+        <p>Admin and manager can open <strong>Archives</strong> to see deleted sales, products, customers, suppliers, and purchase orders. Administrators can <strong>Restore</strong> a record to active lists or <strong>Delete forever</strong> to remove it from the database (blocked if other records still depend on it).</p>
+        <p class="help-jump"><a class="btn btn-sm" href="<?= e(url('/archives')) ?>">Archives</a></p>
+    </div>
+</details>
+
 <details class="help-acc" id="customers">
     <summary>Customers and credit</summary>
     <div class="help-acc-body">
@@ -136,9 +155,10 @@ $sections = [
 <details class="help-acc" id="wholesale">
     <summary>Wholesale</summary>
     <div class="help-acc-body">
-        <p>Flow: quotation → convert → order and invoice. Credit is checked on convert.</p>
+        <p>Flow: quotation → convert → order and invoice. Any active customer at your branch can be quoted. Credit is checked on convert only when that customer has a credit limit.</p>
         <ol>
             <li><strong>New quotation</strong>: pick the wholesale customer, <strong>Add line</strong> for product and qty, then save.</li>
+            <li>Administrators can <strong>Delete</strong> a quotation that has not been converted (archives it). Converted quotes stay linked to their order.</li>
             <li><strong>Convert</strong> on the quote row and confirm. The system checks sellable stock and credit limit. If either fails, the quote stays open — no half order.</li>
             <li>On success you get an order number and invoice. Stock is taken with FEFO.</li>
         </ol>

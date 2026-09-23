@@ -168,4 +168,50 @@ final class SaleService
             throw $e;
         }
     }
+
+    public function voidSale(Sale $sale): void
+    {
+        if ((string) $sale->status === 'cancelled') {
+            return;
+        }
+
+        $branchId = (int) $sale->branch_id;
+        $items = Database::instance()->fetchAll(
+            'SELECT * FROM sale_items WHERE sale_id = :id AND deleted_at IS NULL',
+            [':id' => (int) $sale->id],
+        );
+
+        $db = Database::instance();
+        $db->beginTransaction();
+
+        try {
+            foreach ($items as $item) {
+                $this->stock->increase(
+                    (int) $item['product_id'],
+                    $branchId,
+                    (int) $item['batch_id'],
+                    (float) $item['quantity'],
+                );
+            }
+
+            if ((string) $sale->payment_status === 'credit' && !empty($sale->customer_id)) {
+                $customer = Customer::find((int) $sale->customer_id);
+                if ($customer instanceof Customer) {
+                    $customer->update([
+                        'credit_balance' => max(0, (float) $customer->credit_balance - (float) $sale->total),
+                    ]);
+                }
+            }
+
+            $sale->update([
+                'status' => 'cancelled',
+                'payment_status' => (string) $sale->payment_status === 'credit' ? 'void' : $sale->payment_status,
+            ]);
+
+            $db->commit();
+        } catch (\Throwable $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
 }

@@ -282,3 +282,24 @@ function layout_for_role(?string $role = null): string
         default => 'dashboard-admin',
     };
 }
+
+/**
+ * Build a PDO-safe OR group for LIKE (one bound parameter per column).
+ *
+ * @param list<string> $columns SQL column expressions, e.g. `p.name`
+ * @return array{0: string, 1: array<string, string>}
+ */
+function sql_like_or(array $columns, string $q, string $prefix = 'like'): array
+{
+    $term = '%' . $q . '%';
+    $parts = [];
+    $params = [];
+
+    foreach ($columns as $index => $column) {
+        $key = ':' . $prefix . '_' . $index;
+        $parts[] = $column . ' LIKE ' . $key;
+        $params[$key] = $term;
+    }
+
+    return ['(' . implode(' OR ', $parts) . ')', $params];
+}

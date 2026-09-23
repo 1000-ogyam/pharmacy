@@ -30,8 +30,13 @@ final class PosController extends Controller
         $params = [':b' => $branchId];
 
         if ($q !== '') {
-            $sql .= ' AND (p.name LIKE :q OR p.sku LIKE :q OR p.barcode LIKE :q OR p.generic_name LIKE :q)';
-            $params[':q'] = '%' . $q . '%';
+            [$likeSql, $likeParams] = sql_like_or(
+                ['p.name', 'p.sku', 'p.barcode', 'p.generic_name'],
+                $q,
+                'pos_q',
+            );
+            $sql .= ' AND ' . $likeSql;
+            $params = [...$params, ...$likeParams];
         }
 
         $sql .= ' ORDER BY p.name ASC LIMIT 40';
@@ -141,13 +146,24 @@ final class PosController extends Controller
         $stock = new StockService();
         $pricing = new PricingService();
 
-        $rows = Database::instance()->fetchAll(
-            'SELECT id, sku, name, generic_name, barcode FROM products
-             WHERE deleted_at IS NULL AND is_active = 1
-               AND (name LIKE :q OR sku LIKE :q OR barcode LIKE :q OR generic_name LIKE :q)
-             ORDER BY name LIMIT 20',
-            [':q' => '%' . $q . '%']
+        [$likeSql, $likeParams] = sql_like_or(
+            ['name', 'sku', 'barcode', 'generic_name'],
+            $q,
+            'pos_api',
         );
+
+        $sql = 'SELECT id, sku, name, generic_name, barcode, strength, dosage_form FROM products
+             WHERE deleted_at IS NULL AND is_active = 1';
+        $params = [];
+
+        if ($q !== '') {
+            $sql .= ' AND ' . $likeSql;
+            $params = $likeParams;
+        }
+
+        $sql .= ' ORDER BY name LIMIT 40';
+
+        $rows = Database::instance()->fetchAll($sql, $params);
 
         foreach ($rows as &$row) {
             $row['stock'] = $stock->available((int) $row['id'], $branchId);
