@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Core\Database;
 use App\Core\Model;
+use App\Services\RecordPurgeService;
 
 class Product extends Model
 {
@@ -24,5 +25,22 @@ class Product extends Model
         );
 
         return (float) ($row['quantity'] ?? 0);
+    }
+
+    public function forceDelete(): bool
+    {
+        $id = (int) ($this->attributes[$this->primaryKey] ?? 0);
+        if ($id <= 0) {
+            return false;
+        }
+
+        $before = $this->attributes;
+        (new RecordPurgeService())->purgeProduct($id);
+
+        if ($this->audited) {
+            $this->afterSave('delete', $before, ['id' => $id]);
+        }
+
+        return true;
     }
 }

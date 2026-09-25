@@ -25,6 +25,10 @@
         <div class="form-row"><label>Retail price (GHS)</label><input name="retail_price" type="number" step="0.01" required></div>
         <div class="form-row"><label>Wholesale price</label><input name="wholesale_price" type="number" step="0.01"></div>
         <div class="form-row"><label>Base unit</label><input name="unit_name" value="unit"></div>
+        <?php else: ?>
+        <div class="form-row"><label>Retail price (GHS)</label><input name="retail_price" type="number" step="0.01" value="<?= e(old('retail_price', $retailPrice ?? '')) ?>" required></div>
+        <div class="form-row"><label>Wholesale price</label><input name="wholesale_price" type="number" step="0.01" value="<?= e(old('wholesale_price', $wholesalePrice ?? '')) ?>"></div>
+        <div class="form-row"><label><input type="checkbox" name="is_active" value="1" <?= (int) old('is_active', $product->is_active ?? 1) ? 'checked' : '' ?>> Active (visible on POS)</label></div>
         <?php endif; ?>
         <div class="form-row"><label><input type="checkbox" name="requires_prescription" value="1" <?= !empty($product?->requires_prescription) ? 'checked' : '' ?>> Requires prescription</label></div>
         <div class="form-row"><label><input type="checkbox" name="is_controlled" value="1" <?= !empty($product?->is_controlled) ? 'checked' : '' ?>> Controlled</label></div>

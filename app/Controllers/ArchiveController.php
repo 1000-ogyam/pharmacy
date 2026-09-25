@@ -15,6 +15,7 @@ use App\Models\Quotation;
 use App\Models\Sale;
 use App\Models\Supplier;
 use PDOException;
+use RuntimeException;
 
 final class ArchiveController extends Controller
 {
@@ -67,6 +68,8 @@ final class ArchiveController extends Controller
 
         try {
             $record->forceDelete();
+        } catch (RuntimeException $e) {
+            $this->backWithError($e->getMessage(), '/archives?type=' . urlencode($type));
         } catch (PDOException $e) {
             if ($this->isForeignKeyViolation($e)) {
                 $this->backWithError(

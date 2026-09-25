@@ -24,7 +24,11 @@
                     <td><?= (int) $product->requires_prescription ? '<span class="badge badge-amber">Rx</span>' : '<span class="badge badge-grey">OTC</span>' ?></td>
                     <td class="table-actions">
                         <a class="btn btn-outline btn-sm" data-modal data-modal-title="Edit product" data-modal-wide href="<?= e(url('/products/' . $product->id . '/edit')) ?>">Edit</a>
-                        <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this product?" data-modal-title="Delete product" data-action="<?= e(url('/products/' . $product->id)) ?>" data-method="DELETE">Delete</button>
+                        <?php if (auth()->hasRole('admin')): ?>
+                        <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Permanently delete this product? This cannot be undone." data-modal-title="Delete product" data-action="<?= e(url('/products/' . $product->id)) ?>" data-method="DELETE">Delete</button>
+                        <?php else: ?>
+                        <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this product?" data-modal-title="Archive product" data-action="<?= e(url('/products/' . $product->id)) ?>" data-method="DELETE">Archive</button>
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>
