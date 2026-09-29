@@ -1,6 +1,8 @@
 <div class="page-head">
     <div><h2>Wholesale</h2><p>Quotation → order → invoice, with credit-limit checks.</p></div>
+    <?php if ($canMutate): ?>
     <a class="btn" data-modal data-modal-title="New quotation" data-modal-wide href="<?= e(url('/wholesale/quotations/create')) ?>">New quotation</a>
+    <?php endif; ?>
 </div>
 <div class="grid grid-2">
     <div class="card">
@@ -16,10 +18,10 @@
                         <td><?= e(money($quote['total'])) ?></td>
                         <td><span class="badge badge-navy"><?= e($quote['status']) ?></span></td>
                         <td class="table-actions">
-                            <?php if ($quote['status'] !== 'converted'): ?>
+                            <?php if ($canMutate && $quote['status'] !== 'converted'): ?>
                             <button type="button" class="btn btn-sm" data-modal-confirm="Convert this quotation to an order and invoice?" data-modal-title="Convert quotation" data-method="POST" data-action="<?= e(url('/wholesale/quotations/' . $quote['id'] . '/convert')) ?>">Convert</button>
                             <?php endif; ?>
-                            <?php if (auth()->hasRole('admin')): ?>
+                            <?php if ($canMutate && auth()->hasRole('admin')): ?>
                             <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this quotation?" data-modal-title="Delete quotation" data-action="<?= e(url('/wholesale/quotations/' . $quote['id'])) ?>" data-method="DELETE">Delete</button>
                             <?php endif; ?>
                         </td>

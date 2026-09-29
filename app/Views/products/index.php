@@ -3,7 +3,9 @@
         <h2>Products</h2>
         <p>Catalogue, packaging units, and pricing.</p>
     </div>
+    <?php if ($canMutate): ?>
     <a class="btn" data-modal data-modal-title="New product" data-modal-wide href="<?= e(url('/products/create')) ?>">New product</a>
+    <?php endif; ?>
 </div>
 <div class="card">
     <div class="card-body">
@@ -23,11 +25,13 @@
                     <td><?= e($product->category) ?></td>
                     <td><?= (int) $product->requires_prescription ? '<span class="badge badge-amber">Rx</span>' : '<span class="badge badge-grey">OTC</span>' ?></td>
                     <td class="table-actions">
+                        <?php if ($canMutate): ?>
                         <a class="btn btn-outline btn-sm" data-modal data-modal-title="Edit product" data-modal-wide href="<?= e(url('/products/' . $product->id . '/edit')) ?>">Edit</a>
                         <?php if (auth()->hasRole('admin')): ?>
                         <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Permanently delete this product? This cannot be undone." data-modal-title="Delete product" data-action="<?= e(url('/products/' . $product->id)) ?>" data-method="DELETE">Delete</button>
                         <?php else: ?>
                         <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this product?" data-modal-title="Archive product" data-action="<?= e(url('/products/' . $product->id)) ?>" data-method="DELETE">Archive</button>
+                        <?php endif; ?>
                         <?php endif; ?>
                     </td>
                 </tr>

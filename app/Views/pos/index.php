@@ -2,11 +2,11 @@
     <div>
         <p class="eyebrow">Counter</p>
         <h2>Retail POS</h2>
-        <p>FEFO picks the batch. Expired or recalled stock stays off the ticket.</p>
+        <p>FEFO picks the batch. Expired or recalled stock stays off the ticket.<?= !$canMutate ? ' <strong>View only</strong> — your role cannot complete sales.' : '' ?></p>
     </div>
 </div>
 
-<div class="pos-layout" data-pos data-pos-search-url="<?= e(url('/pos/search')) ?>">
+<div class="pos-layout" data-pos data-pos-search-url="<?= e(url('/pos/search')) ?>"<?= !$canMutate ? ' data-pos-readonly' : '' ?>>
     <div class="card pos-catalogue">
         <div class="card-body">
             <div class="pos-toolbar">
@@ -54,6 +54,7 @@
         <div class="card-head">Cart</div>
         <div class="card-body">
             <div data-pos-cart></div>
+            <?php if ($canMutate): ?>
             <form method="post" action="<?= e(url('/pos/sale')) ?>" data-pos-form>
                 <?= csrf_field() ?>
                 <input type="hidden" name="items" value="[]" data-pos-items>
@@ -86,6 +87,9 @@
                 </div>
                 <button class="btn btn-block btn-lg" style="margin-top:14px;" type="submit" data-pos-submit disabled>Complete sale</button>
             </form>
+            <?php else: ?>
+            <p class="hint" style="margin-top:14px;">Browse products and prices only. Ask a cashier or pharmacist to ring up sales.</p>
+            <?php endif; ?>
         </div>
     </div>
 </div>

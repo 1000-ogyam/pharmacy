@@ -251,6 +251,7 @@
   const formEl = root.querySelector('[data-pos-form]');
   const productsEl = root.querySelector('[data-pos-products]');
   const cart = [];
+  const readOnly = root.hasAttribute('data-pos-readonly');
 
   const setView = (view) => {
     if (!productsEl) {
@@ -357,7 +358,7 @@
 
   root.addEventListener('click', (event) => {
     const productBtn = event.target.closest('[data-pos-add]');
-    if (productBtn && root.contains(productBtn)) {
+    if (productBtn && root.contains(productBtn) && !readOnly) {
       add({
         id: Number(productBtn.dataset.id),
         name: productBtn.dataset.name || '',

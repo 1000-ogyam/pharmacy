@@ -1,6 +1,8 @@
 <div class="page-head">
     <div><h2>Customers</h2><p>Retail patients and wholesale accounts.</p></div>
+    <?php if ($canMutate): ?>
     <a class="btn" data-modal data-modal-title="New customer" href="<?= e(url('/customers/create')) ?>">New customer</a>
+    <?php endif; ?>
 </div>
 <div class="card">
     <div class="table-wrap">
@@ -15,8 +17,10 @@
                     <td><?= e(money($customer->credit_balance)) ?> / <?= e(money($customer->credit_limit)) ?></td>
                     <td><?= e($customer->nhis_number ?: '—') ?></td>
                     <td class="table-actions">
+                        <?php if ($canMutate): ?>
                         <a class="btn btn-outline btn-sm" data-modal data-modal-title="Edit customer" href="<?= e(url('/customers/' . $customer->id . '/edit')) ?>">Edit</a>
                         <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this customer?" data-modal-title="Delete customer" data-action="<?= e(url('/customers/' . $customer->id)) ?>" data-method="DELETE">Delete</button>
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

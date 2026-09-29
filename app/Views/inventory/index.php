@@ -3,7 +3,9 @@
         <h2>Stock levels</h2>
         <p>Branch-scoped quantities. Stock only increases after a verified goods receipt.</p>
     </div>
+    <?php if ($canMutate): ?>
     <a class="btn" data-modal data-modal-title="Transfer stock" href="<?= e(url('/inventory/transfers/create')) ?>">Transfer stock</a>
+    <?php endif; ?>
 </div>
 <div class="card">
     <div class="table-wrap">

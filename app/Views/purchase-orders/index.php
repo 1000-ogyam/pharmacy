@@ -1,6 +1,8 @@
 <div class="page-head">
     <div><h2>Purchase orders</h2><p>Stock increases only after verified GRN.</p></div>
+    <?php if ($canMutate): ?>
     <a class="btn" data-modal data-modal-title="New purchase order" data-modal-wide href="<?= e(url('/purchase-orders/create')) ?>">New PO</a>
+    <?php endif; ?>
 </div>
 <div class="card"><div class="table-wrap">
 <table class="data">
@@ -15,7 +17,9 @@
             <td><?= e(money($order['total_ghs'])) ?></td>
             <td class="table-actions">
                 <a class="btn btn-outline btn-sm" data-modal data-modal-title="<?= e($order['po_number']) ?>" data-modal-wide href="<?= e(url('/purchase-orders/' . $order['id'])) ?>">Receive</a>
+                <?php if ($canMutate): ?>
                 <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this purchase order?" data-modal-title="Delete PO" data-action="<?= e(url('/purchase-orders/' . $order['id'])) ?>" data-method="DELETE">Delete</button>
+                <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; ?>

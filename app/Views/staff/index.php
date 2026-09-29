@@ -1,6 +1,6 @@
 <div class="page-head">
     <div><h2>Staff & licences</h2><p>Create accounts, reset passwords, and manage branch access.</p></div>
-    <?php if (auth()->hasRole('admin')): ?>
+    <?php if ($canManageStaff): ?>
     <a class="btn" data-modal data-modal-title="Add staff" data-modal-wide href="<?= e(url('/staff/create')) ?>">Add staff</a>
     <?php endif; ?>
 </div>
@@ -33,8 +33,10 @@
                     <?php endif; ?>
                 </td>
                 <td class="table-actions">
+                    <?php if ($canManageStaff): ?>
                     <a class="btn btn-outline btn-sm" data-modal data-modal-wide data-modal-title="Edit staff" href="<?= e(url('/staff/' . $row['id'] . '/edit')) ?>">Edit</a>
-                    <?php if (!$isSelf && auth()->hasRole('admin')): ?>
+                    <?php endif; ?>
+                    <?php if (!$isSelf && $canManageStaff): ?>
                     <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Permanently delete this staff account? This cannot be undone." data-modal-title="Delete staff" data-action="<?= e(url('/staff/' . $row['id'])) ?>" data-method="DELETE">Delete</button>
                     <?php endif; ?>
                 </td>

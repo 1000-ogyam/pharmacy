@@ -1,6 +1,8 @@
 <div class="page-head">
     <div><h2>Suppliers</h2></div>
+    <?php if ($canMutate): ?>
     <a class="btn" data-modal data-modal-title="New supplier" href="<?= e(url('/suppliers/create')) ?>">New supplier</a>
+    <?php endif; ?>
 </div>
 <div class="card"><div class="table-wrap">
 <table class="data">
@@ -13,8 +15,10 @@
             <td><?= e($supplier->currency_code) ?></td>
             <td><?= e((string) $supplier->payment_terms_days) ?> days</td>
             <td class="table-actions">
+                <?php if ($canMutate): ?>
                 <a class="btn btn-outline btn-sm" data-modal data-modal-title="Edit supplier" href="<?= e(url('/suppliers/' . $supplier->id . '/edit')) ?>">Edit</a>
                 <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this supplier?" data-modal-title="Delete supplier" data-action="<?= e(url('/suppliers/' . $supplier->id)) ?>" data-method="DELETE">Delete</button>
+                <?php endif; ?>
             </td>
         </tr>
     <?php endforeach; ?>

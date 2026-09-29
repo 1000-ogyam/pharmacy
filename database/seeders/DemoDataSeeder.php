@@ -38,10 +38,11 @@ final class DemoDataSeeder
         $roles = [
             ['Admin', 'admin'],
             ['Manager', 'manager'],
+            ['Medicine Counter Assistant', 'counter'],
             ['Cashier', 'cashier'],
             ['Pharmacist', 'pharmacist'],
             ['Warehouse', 'warehouse'],
-            ['Finance', 'finance'],
+            ['Accountant', 'finance'],
             ['Wholesale', 'wholesale'],
             ['Customer', 'customer'],
             ['Supplier', 'supplier'],
@@ -75,10 +76,11 @@ final class DemoDataSeeder
         $users = [
             ['Admin User', 'admin@plpharma.com', 'admin'],
             ['Mensah Manager', 'manager@plpharma.com', 'manager'],
+            ['Abena Counter', 'counter@plpharma.com', 'counter'],
             ['Ama Cashier', 'cashier@plpharma.com', 'cashier'],
             ['Kojo Pharmacist', 'pharmacist@plpharma.com', 'pharmacist'],
             ['Yaw Warehouse', 'warehouse@plpharma.com', 'warehouse'],
-            ['Efua Finance', 'finance@plpharma.com', 'finance'],
+            ['Efua Accountant', 'finance@plpharma.com', 'finance'],
             ['Kofi Wholesale', 'wholesale@plpharma.com', 'wholesale'],
         ];
         foreach ($users as [$name, $email, $slug]) {

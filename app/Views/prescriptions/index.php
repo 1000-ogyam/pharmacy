@@ -1,6 +1,8 @@
 <div class="page-head">
     <div><h2>Prescriptions</h2></div>
+    <?php if ($canMutate): ?>
     <a class="btn" data-modal data-modal-title="New prescription" data-modal-wide href="<?= e(url('/prescriptions/create')) ?>">New prescription</a>
+    <?php endif; ?>
 </div>
 <div class="card"><div class="table-wrap">
 <table class="data">

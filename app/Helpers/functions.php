@@ -272,6 +272,7 @@ function layout_for_role(?string $role = null): string
 
     return match ($role) {
         'manager' => 'dashboard-manager',
+        'counter' => 'dashboard-counter',
         'cashier' => 'dashboard-retail',
         'pharmacist' => 'dashboard-pharmacist',
         'warehouse' => 'dashboard-warehouse',
@@ -281,6 +282,16 @@ function layout_for_role(?string $role = null): string
         'supplier' => 'portal-supplier',
         default => 'dashboard-admin',
     };
+}
+
+function can_mutate_data(): bool
+{
+    return auth()->check() && !auth()->hasRole('counter');
+}
+
+function can_manage_staff(): bool
+{
+    return auth()->hasRole('admin');
 }
 
 /**

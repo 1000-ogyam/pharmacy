@@ -59,8 +59,6 @@ final class StaffController extends Controller
             'branch_id' => 'required|integer',
         ]);
 
-        $this->assertManagerMayManageRole((int) $data['role_id']);
-
         $email = $this->normalizeEmail((string) $data['email']);
         $this->purgeSoftDeletedUsersWithEmail($email, null);
 
@@ -90,8 +88,9 @@ final class StaffController extends Controller
 
     public function edit(Request $request, int $id): never
     {
+        $this->assertAdminOnly();
+
         $staff = $this->findStaff($id);
-        $this->assertManagerMayManageUser($staff);
 
         $this->view('staff.form', [
             'title' => 'Edit staff',
@@ -103,8 +102,9 @@ final class StaffController extends Controller
 
     public function update(Request $request, int $id): never
     {
+        $this->assertAdminOnly();
+
         $staff = $this->findStaff($id);
-        $this->assertManagerMayManageUser($staff);
 
         $rules = [
             'name' => 'required',
@@ -118,8 +118,6 @@ final class StaffController extends Controller
         }
 
         $data = $this->validate($request->all(), $rules);
-
-        $this->assertManagerMayManageRole((int) $data['role_id']);
 
         $email = $this->normalizeEmail((string) $data['email']);
         $this->purgeSoftDeletedUsersWithEmail($email, $id);
@@ -167,7 +165,6 @@ final class StaffController extends Controller
         }
 
         $staff = $this->findStaff($id);
-        $this->assertManagerMayManageUser($staff);
 
         try {
             $staff->forceDelete();
@@ -198,14 +195,9 @@ final class StaffController extends Controller
     private function formOptions(): array
     {
         $this->ensureManagerRoleExists();
+        $this->ensureCounterRoleExists();
 
         $roles = Role::query()->orderBy('name')->get();
-        if ($this->actingAsManager()) {
-            $roles = array_values(array_filter(
-                $roles,
-                static fn (Role $role): bool => !in_array($role->slug, ['admin', 'customer', 'supplier'], true),
-            ));
-        }
 
         return [
             'roles' => $roles,
@@ -364,6 +356,36 @@ final class StaffController extends Controller
         return Database::instance()->fetch($sql, $params) !== null;
     }
 
+    private function ensureCounterRoleExists(): void
+    {
+        $db = Database::instance();
+        $row = $db->fetch(
+            'SELECT id, deleted_at FROM roles WHERE slug = :slug LIMIT 1',
+            [':slug' => 'counter'],
+        );
+
+        if ($row === null) {
+            Role::create([
+                'name' => 'Medicine Counter Assistant',
+                'slug' => 'counter',
+                'description' => 'Read-only access to branch data',
+            ]);
+
+            return;
+        }
+
+        if ($row['deleted_at'] !== null) {
+            $db->execute(
+                'UPDATE roles SET deleted_at = NULL, name = :name, description = :description, updated_at = NOW() WHERE id = :id',
+                [
+                    ':name' => 'Medicine Counter Assistant',
+                    ':description' => 'Read-only access to branch data',
+                    ':id' => (int) $row['id'],
+                ],
+            );
+        }
+    }
+
     private function ensureManagerRoleExists(): void
     {
         $db = Database::instance();
@@ -397,40 +419,7 @@ final class StaffController extends Controller
     private function assertAdminOnly(): void
     {
         if (!auth()->hasRole('admin')) {
-            abort(403, 'Only administrators can add or remove staff accounts.');
-        }
-    }
-
-    private function actingAsManager(): bool
-    {
-        return (auth()->user()?->role_slug ?? '') === 'manager';
-    }
-
-    private function assertManagerMayManageRole(int $roleId): void
-    {
-        if (!$this->actingAsManager()) {
-            return;
-        }
-
-        $role = Role::find($roleId);
-        if ($role instanceof Role && in_array($role->slug, ['admin', 'customer', 'supplier'], true)) {
-            $this->backWithError('Managers cannot assign administrator or portal-only roles.', '/staff');
-        }
-    }
-
-    private function assertManagerMayManageUser(User $staff): void
-    {
-        if (!$this->actingAsManager()) {
-            return;
-        }
-
-        $row = Database::instance()->fetch(
-            'SELECT slug FROM roles WHERE id = :id',
-            [':id' => (int) $staff->role_id],
-        );
-        $slug = (string) ($row['slug'] ?? '');
-        if (in_array($slug, ['admin', 'customer', 'supplier'], true)) {
-            $this->backWithError('Managers cannot change administrator or portal-only accounts.', '/staff');
+            abort(403, 'Only administrators can add, edit, or remove staff accounts.');
         }
     }
 

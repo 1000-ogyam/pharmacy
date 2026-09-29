@@ -174,6 +174,7 @@ final class Router
             'role' => Middleware\RoleMiddleware::class,
             'csrf' => Middleware\CsrfMiddleware::class,
             'guest' => Middleware\GuestMiddleware::class,
+            'readonly' => Middleware\ReadOnlyRoleMiddleware::class,
             default => throw new RuntimeException('Unknown middleware: ' . $name),
         };
 
