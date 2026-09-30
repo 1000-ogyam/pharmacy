@@ -61,7 +61,7 @@ final class SaleController extends Controller
             'from' => $from,
             'to' => $to,
             'q' => $q,
-            'canManage' => auth()->hasRole('admin'),
+            'canDelete' => can_delete_data(),
         ]);
     }
 
@@ -73,14 +73,12 @@ final class SaleController extends Controller
             'pageTitle' => 'Sale ' . $sale->sale_number,
             'sale' => $sale,
             ...$this->saleDetailPayload($sale),
-            'canManage' => auth()->hasRole('admin'),
+            'canDelete' => can_delete_data(),
         ]);
     }
 
     public function edit(Request $request, int $id): never
     {
-        $this->assertAdminOnly();
-
         $sale = $this->findSale($id);
         $this->view('sales.form', [
             'title' => 'Edit sale',
@@ -92,8 +90,6 @@ final class SaleController extends Controller
 
     public function update(Request $request, int $id): never
     {
-        $this->assertAdminOnly();
-
         $sale = $this->findSale($id);
         $data = $this->validate($request->all(), [
             'notes' => 'max:255',

@@ -17,6 +17,8 @@
             <td class="table-actions">
                 <?php if ($canMutate): ?>
                 <a class="btn btn-outline btn-sm" data-modal data-modal-title="Edit supplier" href="<?= e(url('/suppliers/' . $supplier->id . '/edit')) ?>">Edit</a>
+                <?php endif; ?>
+                <?php if ($canDelete): ?>
                 <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this supplier?" data-modal-title="Delete supplier" data-action="<?= e(url('/suppliers/' . $supplier->id)) ?>" data-method="DELETE">Delete</button>
                 <?php endif; ?>
             </td>

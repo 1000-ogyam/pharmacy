@@ -271,22 +271,34 @@ function layout_for_role(?string $role = null): string
     $role ??= auth()->user()?->role_slug;
 
     return match ($role) {
-        'manager' => 'dashboard-manager',
-        'counter' => 'dashboard-counter',
-        'cashier' => 'dashboard-retail',
-        'pharmacist' => 'dashboard-pharmacist',
-        'warehouse' => 'dashboard-warehouse',
-        'finance' => 'dashboard-finance',
-        'wholesale' => 'dashboard-wholesale',
         'customer' => 'portal-customer',
         'supplier' => 'portal-supplier',
         default => 'dashboard-admin',
     };
 }
 
+function is_staff_role(): bool
+{
+    return auth()->hasRole(
+        'admin',
+        'manager',
+        'cashier',
+        'pharmacist',
+        'counter',
+        'warehouse',
+        'finance',
+        'wholesale',
+    );
+}
+
 function can_mutate_data(): bool
 {
-    return auth()->check() && !auth()->hasRole('counter');
+    return auth()->check() && is_staff_role();
+}
+
+function can_delete_data(): bool
+{
+    return auth()->hasRole('admin');
 }
 
 function can_manage_staff(): bool

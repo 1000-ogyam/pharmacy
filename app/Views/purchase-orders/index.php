@@ -17,7 +17,7 @@
             <td><?= e(money($order['total_ghs'])) ?></td>
             <td class="table-actions">
                 <a class="btn btn-outline btn-sm" data-modal data-modal-title="<?= e($order['po_number']) ?>" data-modal-wide href="<?= e(url('/purchase-orders/' . $order['id'])) ?>">Receive</a>
-                <?php if ($canMutate): ?>
+                <?php if ($canDelete): ?>
                 <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this purchase order?" data-modal-title="Delete PO" data-action="<?= e(url('/purchase-orders/' . $order['id'])) ?>" data-method="DELETE">Delete</button>
                 <?php endif; ?>
             </td>

@@ -45,7 +45,7 @@ final class ArchiveController extends Controller
             'page' => $result['page'],
             'pages' => $result['pages'],
             'q' => $q,
-            'canManage' => auth()->hasRole('admin'),
+            'canManage' => can_delete_data(),
         ]);
     }
 

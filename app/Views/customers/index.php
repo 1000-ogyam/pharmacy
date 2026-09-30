@@ -19,6 +19,8 @@
                     <td class="table-actions">
                         <?php if ($canMutate): ?>
                         <a class="btn btn-outline btn-sm" data-modal data-modal-title="Edit customer" href="<?= e(url('/customers/' . $customer->id . '/edit')) ?>">Edit</a>
+                        <?php endif; ?>
+                        <?php if ($canDelete): ?>
                         <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this customer?" data-modal-title="Delete customer" data-action="<?= e(url('/customers/' . $customer->id)) ?>" data-method="DELETE">Delete</button>
                         <?php endif; ?>
                     </td>

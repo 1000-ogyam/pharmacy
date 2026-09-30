@@ -73,13 +73,9 @@ $sections = [
             <table class="data">
                 <thead><tr><th>Role</th><th>Typical work</th><th>Main menu</th></tr></thead>
                 <tbody>
-                    <tr><td>Admin</td><td>Full access</td><td>All modules including SMS and staff management</td></tr>
-                    <tr><td>Manager</td><td>Branch leadership</td><td>Same operational menu as admin (no SMS). Can view staff but not add, edit, or delete staff.</td></tr>
-                    <tr><td>Medicine Counter Assistant</td><td>Supervision / audit</td><td>View all branch data (read-only). No POS checkout, edits, deletes, or staff changes.</td></tr>
-                    <tr><td>Cashier</td><td>Retail counter</td><td>POS checkout, Customers, My sales</td></tr>
-                    <tr><td>Pharmacist</td><td>Dispensing</td><td>POS, Prescriptions, NHIS, Batches, Patients</td></tr>
-                    <tr><td>Accountant</td><td>Money and credit</td><td>Accounting, Credit / AR, Reports, Approvals, Customers, Suppliers</td></tr>
-                    <tr><td>Warehouse</td><td>Buying and stock</td><td>Stock, Batches, Products, Purchase orders, Suppliers, Returns</td></tr>
+                    <tr><td>Admin</td><td>Full control</td><td>Same menu as all staff, plus delete records and manage staff accounts</td></tr>
+                    <tr><td>Manager, Cashier, Pharmacist, Medicine Counter Assistant, Warehouse, Accountant, Wholesale</td><td>Day-to-day operations</td><td>Full admin menu: create and edit products, sales, customers, stock, prescriptions, finance, SMS, and more</td></tr>
+                    <tr><td>All non-admin staff</td><td>Restrictions</td><td>Cannot delete or archive records. Cannot add, edit, or delete staff users (view staff list only)</td></tr>
                     <tr><td>Wholesale</td><td>Account customers</td><td>Orders, Accounts, Credit limits, Deliveries, Catalogue</td></tr>
                     <tr><td>Customer</td><td>Own invoices</td><td>Customer portal</td></tr>
                     <tr><td>Supplier</td><td>Own purchase orders</td><td>Supplier portal</td></tr>
@@ -252,7 +248,7 @@ $sections = [
 <details class="help-acc" id="staff">
     <summary>Staff and licences</summary>
     <div class="help-acc-body">
-        <p>Only <strong>administrators</strong> can add, edit, or permanently delete staff. Managers and Medicine Counter Assistants can open the staff list to view licences but cannot change accounts. The staff form covers name, email, phone, password (optional when editing), role, branch, licence, portal links, and active status. Email, phone, and portal links must be unique. If delete is blocked because of past sales, uncheck <strong>Account active</strong> instead. A <strong>Renew</strong> badge appears when a licence is due within 60 days.</p>
+        <p>Only <strong>administrators</strong> can add, edit, or delete staff accounts. Everyone else can open the staff list to view licences only. The staff form covers name, email, phone, password (optional when editing), role, branch, licence, portal links, and active status. Email, phone, and portal links must be unique. If delete is blocked because of past sales, uncheck <strong>Account active</strong> instead. A <strong>Renew</strong> badge appears when a licence is due within 60 days.</p>
         <p class="help-jump"><a class="btn btn-sm" href="<?= e(url('/staff')) ?>">Staff</a></p>
     </div>
 </details>

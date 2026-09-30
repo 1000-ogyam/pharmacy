@@ -21,7 +21,7 @@
                             <?php if ($canMutate && $quote['status'] !== 'converted'): ?>
                             <button type="button" class="btn btn-sm" data-modal-confirm="Convert this quotation to an order and invoice?" data-modal-title="Convert quotation" data-method="POST" data-action="<?= e(url('/wholesale/quotations/' . $quote['id'] . '/convert')) ?>">Convert</button>
                             <?php endif; ?>
-                            <?php if ($canMutate && auth()->hasRole('admin')): ?>
+                            <?php if ($canDelete): ?>
                             <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this quotation?" data-modal-title="Delete quotation" data-action="<?= e(url('/wholesale/quotations/' . $quote['id'])) ?>" data-method="DELETE">Delete</button>
                             <?php endif; ?>
                         </td>

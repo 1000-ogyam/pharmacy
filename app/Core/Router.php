@@ -174,7 +174,7 @@ final class Router
             'role' => Middleware\RoleMiddleware::class,
             'csrf' => Middleware\CsrfMiddleware::class,
             'guest' => Middleware\GuestMiddleware::class,
-            'readonly' => Middleware\ReadOnlyRoleMiddleware::class,
+            'admin_delete' => Middleware\AdminDeleteMiddleware::class,
             default => throw new RuntimeException('Unknown middleware: ' . $name),
         };
 

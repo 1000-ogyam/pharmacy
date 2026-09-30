@@ -11,6 +11,7 @@ abstract class Controller
         $data['authUser'] = auth()->user();
         $data['currentPath'] = request_path();
         $data['canMutate'] = can_mutate_data();
+        $data['canDelete'] = can_delete_data();
         $data['canManageStaff'] = can_manage_staff();
 
         if (Request::capture()->isModal()) {

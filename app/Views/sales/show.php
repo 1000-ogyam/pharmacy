@@ -1,6 +1,6 @@
 <?php
 /** @var \App\Models\Sale $sale */
-/** @var bool $canManage */
+/** @var bool $canDelete */
 ?>
 <div class="page-head">
     <div>
@@ -10,7 +10,7 @@
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <a class="btn btn-outline" href="<?= e(url('/sales')) ?>">Back to list</a>
         <a class="btn btn-outline" href="<?= e(url('/pos/receipt/' . $sale->id)) ?>">Print receipt</a>
-        <?php if ($canManage): ?>
+        <?php if ($canMutate): ?>
             <a class="btn" data-modal data-modal-wide data-modal-title="Edit sale" href="<?= e(url('/sales/' . $sale->id . '/edit')) ?>">Edit</a>
         <?php endif; ?>
     </div>

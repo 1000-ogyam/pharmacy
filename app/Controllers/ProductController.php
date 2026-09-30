@@ -193,26 +193,25 @@ final class ProductController extends Controller
 
     public function destroy(Request $request, int $id): never
     {
-        $product = Product::findOrFail($id);
-
-        if (auth()->hasRole('admin')) {
-            try {
-                $product->forceDelete();
-            } catch (PDOException $e) {
-                if ($this->isForeignKeyViolation($e)) {
-                    $this->backWithError(
-                        'This product cannot be permanently deleted because other records still reference it.',
-                        '/products',
-                    );
-                }
-                throw $e;
-            }
-
-            $this->backWithSuccess('Product permanently deleted.', '/products');
+        if (!auth()->hasRole('admin')) {
+            abort(403, 'Only administrators can delete products.');
         }
 
-        $product->delete();
-        $this->backWithSuccess('Product archived.', '/products');
+        $product = Product::findOrFail($id);
+
+        try {
+            $product->forceDelete();
+        } catch (PDOException $e) {
+            if ($this->isForeignKeyViolation($e)) {
+                $this->backWithError(
+                    'This product cannot be permanently deleted because other records still reference it.',
+                    '/products',
+                );
+            }
+            throw $e;
+        }
+
+        $this->backWithSuccess('Product permanently deleted.', '/products');
     }
 
     private function priceForProduct(int $productId, string $priceType): ?float
