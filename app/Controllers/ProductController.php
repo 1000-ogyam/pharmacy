@@ -37,10 +37,17 @@ final class ProductController extends Controller
             $result = Product::query()->orderBy('name')->paginate(per_page(), $page);
         }
 
+        $products = $result['data'];
+        $productIds = array_map(
+            static fn(Product $product): int => (int) $product->id,
+            $products,
+        );
+
         $this->view('products.index', [
             'title' => 'Products',
             'pageTitle' => 'Products',
-            'products' => $result['data'],
+            'products' => $products,
+            'priceMap' => $this->priceMapForProducts($productIds),
             'page' => $result['page'],
             'pages' => $result['pages'],
             'q' => $q,
@@ -216,16 +223,47 @@ final class ProductController extends Controller
 
     private function priceForProduct(int $productId, string $priceType): ?float
     {
-        $row = Database::instance()->fetch(
-            'SELECT pp.price
+        $map = $this->priceMapForProducts([$productId]);
+
+        return $map[$productId][$priceType] ?? null;
+    }
+
+    /**
+     * @param list<int> $productIds
+     * @return array<int, array{retail: ?float, wholesale_tier1: ?float}>
+     */
+    private function priceMapForProducts(array $productIds): array
+    {
+        $productIds = array_values(array_filter(array_map('intval', $productIds), static fn(int $id): bool => $id > 0));
+        if ($productIds === []) {
+            return [];
+        }
+
+        $branchId = (int) (auth()->branchId() ?? 0);
+        $in = implode(',', $productIds);
+
+        $rows = Database::instance()->fetchAll(
+            'SELECT pp.product_id, pp.price_type, pp.price, pp.branch_id
              FROM product_prices pp
              INNER JOIN product_units pu ON pu.id = pp.unit_id AND pu.deleted_at IS NULL AND pu.is_base = 1
-             WHERE pp.product_id = :pid AND pp.price_type = :type AND pp.deleted_at IS NULL
-             LIMIT 1',
-            [':pid' => $productId, ':type' => $priceType],
+             WHERE pp.product_id IN (' . $in . ')
+               AND pp.deleted_at IS NULL
+               AND pp.price_type IN (\'retail\', \'wholesale_tier1\')
+               AND (pp.branch_id IS NULL' . ($branchId > 0 ? ' OR pp.branch_id = :branch_id' : '') . ')
+             ORDER BY pp.product_id ASC, pp.price_type ASC, pp.branch_id DESC',
+            $branchId > 0 ? [':branch_id' => $branchId] : [],
         );
 
-        return $row !== null ? (float) $row['price'] : null;
+        $map = [];
+        foreach ($rows as $row) {
+            $productId = (int) $row['product_id'];
+            $type = (string) $row['price_type'];
+            if (!isset($map[$productId][$type])) {
+                $map[$productId][$type] = (float) $row['price'];
+            }
+        }
+
+        return $map;
     }
 
     private function syncPrice(int $productId, string $priceType, float $price): void

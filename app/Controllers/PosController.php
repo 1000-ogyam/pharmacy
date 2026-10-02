@@ -18,36 +18,18 @@ use RuntimeException;
 
 final class PosController extends Controller
 {
+    private const POS_PER_PAGE = 10;
+
     public function index(Request $request): never
     {
         $branchId = (int) (auth()->branchId() ?? 0);
         $q = trim((string) $request->query('q', ''));
+        $page = max(1, (int) $request->query('page', 1));
+        $priceMode = $this->normalizePriceMode((string) $request->query('price_mode', 'retail'));
 
-        $sql = 'SELECT p.*, sl.quantity AS stock
-                FROM products p
-                LEFT JOIN stock_levels sl ON sl.product_id = p.id AND sl.branch_id = :b AND sl.deleted_at IS NULL
-                WHERE p.deleted_at IS NULL AND p.is_active = 1';
-        $params = [':b' => $branchId];
-
-        if ($q !== '') {
-            [$likeSql, $likeParams] = sql_like_or(
-                ['p.name', 'p.sku', 'p.barcode', 'p.generic_name'],
-                $q,
-                'pos_q',
-            );
-            $sql .= ' AND ' . $likeSql;
-            $params = [...$params, ...$likeParams];
-        }
-
-        $sql .= ' ORDER BY p.name ASC LIMIT 40';
-
-        $products = Database::instance()->fetchAll($sql, $params);
-        $pricing = new PricingService();
-
-        foreach ($products as &$product) {
-            $product['price'] = $pricing->unitPrice((int) $product['id'], $branchId);
-        }
-        unset($product);
+        [$sql, $params] = $this->catalogueSql($branchId, $q);
+        $result = Database::instance()->paginate($sql, $params, $page, self::POS_PER_PAGE);
+        $products = $this->attachPosPrices($result['data'], $branchId, $priceMode);
 
         $customers = Customer::where('is_active', 1)->where('branch_id', $branchId)->orderBy('name')->limit(200)->get();
 
@@ -57,6 +39,9 @@ final class PosController extends Controller
             'products' => $products,
             'customers' => $customers,
             'q' => $q,
+            'priceMode' => $priceMode,
+            'page' => $result['page'],
+            'pages' => $result['pages'],
         ]);
     }
 
@@ -67,6 +52,8 @@ final class PosController extends Controller
             $items = json_decode($items, true) ?: [];
         }
 
+        $priceMode = $this->normalizePriceMode((string) $request->input('price_mode', 'retail'));
+
         try {
             $sale = (new SaleService())->checkout([
                 'items' => $items,
@@ -74,7 +61,8 @@ final class PosController extends Controller
                 'discount' => $request->input('discount', 0),
                 'payment_method' => $request->input('payment_method', 'cash'),
                 'notes' => $request->input('notes'),
-                'sale_type' => 'retail',
+                'price_mode' => $priceMode,
+                'sale_type' => $priceMode,
             ]);
         } catch (RuntimeException $e) {
             if ($request->wantsJson()) {
@@ -143,33 +131,65 @@ final class PosController extends Controller
     {
         $branchId = (int) (auth()->branchId() ?? 0);
         $q = trim((string) $request->query('q', ''));
-        $stock = new StockService();
-        $pricing = new PricingService();
+        $page = max(1, (int) $request->query('page', 1));
+        $priceMode = $this->normalizePriceMode((string) $request->query('price_mode', 'retail'));
 
-        [$likeSql, $likeParams] = sql_like_or(
-            ['name', 'sku', 'barcode', 'generic_name'],
-            $q,
-            'pos_api',
-        );
+        [$sql, $params] = $this->catalogueSql($branchId, $q);
+        $result = Database::instance()->paginate($sql, $params, $page, self::POS_PER_PAGE);
+        $rows = $this->attachPosPrices($result['data'], $branchId, $priceMode);
 
-        $sql = 'SELECT id, sku, name, generic_name, barcode, strength, dosage_form FROM products
-             WHERE deleted_at IS NULL AND is_active = 1';
-        $params = [];
+        $this->json([
+            'ok' => true,
+            'data' => $rows,
+            'page' => $result['page'],
+            'pages' => $result['pages'],
+            'price_mode' => $priceMode,
+        ]);
+    }
+
+    private function normalizePriceMode(string $mode): string
+    {
+        return $mode === 'wholesale' ? 'wholesale' : 'retail';
+    }
+
+    /** @return array{0: string, 1: array<string, mixed>} */
+    private function catalogueSql(int $branchId, string $q): array
+    {
+        $sql = 'SELECT p.id, p.sku, p.name, p.generic_name, p.barcode, p.strength, p.dosage_form,
+                       COALESCE(sl.quantity, 0) AS stock
+                FROM products p
+                LEFT JOIN stock_levels sl ON sl.product_id = p.id AND sl.branch_id = :b AND sl.deleted_at IS NULL
+                WHERE p.deleted_at IS NULL AND p.is_active = 1';
+        $params = [':b' => $branchId];
 
         if ($q !== '') {
+            [$likeSql, $likeParams] = sql_like_or(
+                ['p.name', 'p.sku', 'p.barcode', 'p.generic_name'],
+                $q,
+                'pos_q',
+            );
             $sql .= ' AND ' . $likeSql;
-            $params = $likeParams;
+            $params = [...$params, ...$likeParams];
         }
 
-        $sql .= ' ORDER BY name LIMIT 40';
+        $sql .= ' ORDER BY p.name ASC';
 
-        $rows = Database::instance()->fetchAll($sql, $params);
+        return [$sql, $params];
+    }
+
+    /** @param list<array<string, mixed>> $rows */
+    private function attachPosPrices(array $rows, int $branchId, string $priceMode): array
+    {
+        $pricing = new PricingService();
 
         foreach ($rows as &$row) {
-            $row['stock'] = $stock->available((int) $row['id'], $branchId);
-            $row['price'] = $pricing->unitPrice((int) $row['id'], $branchId);
+            $productId = (int) $row['id'];
+            $row['price'] = $pricing->unitPriceForPos($productId, $branchId, $priceMode);
+            $row['retail_price'] = $pricing->unitPriceForPos($productId, $branchId, 'retail');
+            $row['wholesale_price'] = $pricing->unitPriceForPos($productId, $branchId, 'wholesale');
         }
+        unset($row);
 
-        $this->json(['ok' => true, 'data' => $rows]);
+        return $rows;
     }
 }

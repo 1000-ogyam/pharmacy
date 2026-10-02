@@ -17,6 +17,38 @@ final class PricingService
             $priceType = (string) ($customer->pricing_tier ?: 'wholesale_tier1');
         }
 
+        return $this->priceByType($productId, $branchId, $priceType, $unitId);
+    }
+
+    public function unitPriceForPos(
+        int $productId,
+        int $branchId,
+        string $priceMode = 'retail',
+        ?Customer $customer = null,
+        ?int $unitId = null,
+    ): float {
+        if ($priceMode !== 'wholesale') {
+            return $this->priceByType($productId, $branchId, 'retail', $unitId);
+        }
+
+        $priceType = 'wholesale_tier1';
+        if ($customer instanceof Customer && $customer->type === 'wholesale') {
+            $tier = trim((string) ($customer->pricing_tier ?? ''));
+            if ($tier !== '') {
+                $priceType = $tier;
+            }
+        }
+
+        $wholesale = $this->priceByType($productId, $branchId, $priceType, $unitId);
+        if ($wholesale > 0) {
+            return $wholesale;
+        }
+
+        return $this->priceByType($productId, $branchId, 'retail', $unitId);
+    }
+
+    private function priceByType(int $productId, int $branchId, string $priceType, ?int $unitId = null): float
+    {
         $db = Database::instance();
 
         $sql = 'SELECT price FROM product_prices
@@ -45,7 +77,7 @@ final class PricingService
         }
 
         if ($priceType !== 'retail') {
-            return $this->unitPrice($productId, $branchId, null, $unitId);
+            return $this->priceByType($productId, $branchId, 'retail', $unitId);
         }
 
         return 0.0;

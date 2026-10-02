@@ -1,17 +1,26 @@
+<?php
+/** @var string $priceMode */
+/** @var int $page */
+/** @var int $pages */
+?>
 <div class="page-head">
     <div>
         <p class="eyebrow">Counter</p>
         <h2>Retail POS</h2>
-        <p>FEFO picks the batch. Expired or recalled stock stays off the ticket.</p>
+        <p>FEFO picks the batch. Choose <strong>retail</strong> or <strong>wholesale</strong> pricing before adding lines. <?= (int) $pages > 1 ? 'Showing 10 products per page.' : '' ?></p>
     </div>
 </div>
 
-<div class="pos-layout" data-pos data-pos-search-url="<?= e(url('/pos/search')) ?>">
+<div class="pos-layout" data-pos data-pos-search-url="<?= e(url('/pos/search')) ?>" data-pos-price-mode="<?= e($priceMode) ?>">
     <div class="card pos-catalogue">
         <div class="card-body">
             <div class="pos-toolbar">
-                <form class="searchbar" method="get" action="<?= e(url('/pos')) ?>" data-pos-search-form>
+                <form class="searchbar" method="get" action="<?= e(url('/pos')) ?>" data-pos-search-form style="flex:1;">
                     <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search name, SKU, barcode…" data-pos-search autocomplete="off">
+                    <select name="price_mode" data-pos-price-mode-select aria-label="Price list">
+                        <option value="retail" <?= $priceMode === 'retail' ? 'selected' : '' ?>>Retail prices</option>
+                        <option value="wholesale" <?= $priceMode === 'wholesale' ? 'selected' : '' ?>>Wholesale prices</option>
+                    </select>
                 </form>
                 <div class="view-toggle" role="group" aria-label="Product layout">
                     <button type="button" class="icon-btn is-active" data-pos-view="grid" title="Grid view" aria-label="Grid view">
@@ -22,30 +31,46 @@
                     </button>
                 </div>
             </div>
-            <div class="pos-products is-grid" data-pos-products>
-                <?php foreach ($products as $product): ?>
-                    <button
-                        type="button"
-                        class="pos-product"
-                        data-pos-add
-                        data-id="<?= (int) $product['id'] ?>"
-                        data-name="<?= e($product['name']) ?>"
-                        data-price="<?= e((string) $product['price']) ?>"
-                        data-stock="<?= e((string) ($product['stock'] ?? 0)) ?>"
-                    >
-                        <div class="pos-product-main">
-                            <strong><?= e($product['name']) ?></strong>
-                            <span class="pos-product-meta"><?= e($product['sku']) ?> · <?= e($product['strength'] ?: $product['dosage_form']) ?></span>
-                        </div>
-                        <div class="pos-product-side">
-                            <span class="pos-product-price"><?= e(money($product['price'])) ?></span>
-                            <span class="pos-product-stock">Stock <?= e(format_qty($product['stock'] ?? 0)) ?></span>
-                        </div>
-                    </button>
-                <?php endforeach; ?>
-                <?php if ($products === []): ?>
-                    <div class="empty">No products match that search.</div>
-                <?php endif; ?>
+            <div data-pos-catalogue-wrap>
+                <div class="pos-products is-grid" data-pos-products>
+                    <?php foreach ($products as $product): ?>
+                        <button
+                            type="button"
+                            class="pos-product"
+                            data-pos-add
+                            data-id="<?= (int) $product['id'] ?>"
+                            data-name="<?= e($product['name']) ?>"
+                            data-price="<?= e((string) $product['price']) ?>"
+                            data-stock="<?= e((string) ($product['stock'] ?? 0)) ?>"
+                        >
+                            <div class="pos-product-main">
+                                <strong><?= e($product['name']) ?></strong>
+                                <span class="pos-product-meta"><?= e($product['sku']) ?> · <?= e($product['strength'] ?: $product['dosage_form']) ?></span>
+                            </div>
+                            <div class="pos-product-side">
+                                <span class="pos-product-price"><?= e(money($product['price'])) ?></span>
+                                <span class="pos-product-stock" style="font-size:11px;color:var(--color-grey);">
+                                    R <?= e(money($product['retail_price'] ?? $product['price'])) ?> · W <?= e(money($product['wholesale_price'] ?? $product['price'])) ?>
+                                </span>
+                                <span class="pos-product-stock">Stock <?= e(format_qty($product['stock'] ?? 0)) ?></span>
+                            </div>
+                        </button>
+                    <?php endforeach; ?>
+                    <?php if ($products === []): ?>
+                        <div class="empty">No products match that search.</div>
+                    <?php endif; ?>
+                </div>
+                <div data-pos-pagination>
+                <?php
+                    $query = ['q' => $q, 'price_mode' => $priceMode];
+                    \App\Core\View::include('partials.pagination', [
+                        'page' => $page,
+                        'pages' => $pages,
+                        'base' => '/pos',
+                        'query' => $query,
+                    ]);
+                ?>
+                </div>
             </div>
         </div>
     </div>
@@ -57,6 +82,7 @@
             <form method="post" action="<?= e(url('/pos/sale')) ?>" data-pos-form>
                 <?= csrf_field() ?>
                 <input type="hidden" name="items" value="[]" data-pos-items>
+                <input type="hidden" name="price_mode" value="<?= e($priceMode) ?>" data-pos-price-mode-input>
                 <div class="form-row" style="margin-top:12px;">
                     <label>Customer</label>
                     <select name="customer_id">

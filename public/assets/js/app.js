@@ -250,8 +250,25 @@
   const submitEl = root.querySelector('[data-pos-submit]');
   const formEl = root.querySelector('[data-pos-form]');
   const productsEl = root.querySelector('[data-pos-products]');
+  const paginationEl = root.querySelector('[data-pos-pagination]');
+  const priceModeSelect = root.querySelector('[data-pos-price-mode-select]');
+  const priceModeInput = root.querySelector('[data-pos-price-mode-input]');
   const cart = [];
   const readOnly = root.hasAttribute('data-pos-readonly');
+  let posSearchPage = 1;
+
+  const getPriceMode = () => {
+    const mode = priceModeSelect?.value || root.getAttribute('data-pos-price-mode') || 'retail';
+    return mode === 'wholesale' ? 'wholesale' : 'retail';
+  };
+
+  const syncPriceMode = () => {
+    const mode = getPriceMode();
+    root.setAttribute('data-pos-price-mode', mode);
+    if (priceModeInput) {
+      priceModeInput.value = mode;
+    }
+  };
 
   const setView = (view) => {
     if (!productsEl) {
@@ -416,6 +433,8 @@
     const attr = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     productsEl.innerHTML = products.map((product) => {
       const meta = [product.sku, product.strength || product.dosage_form].filter(Boolean).join(' · ');
+      const retail = money(Number(product.retail_price ?? product.price ?? 0));
+      const wholesale = money(Number(product.wholesale_price ?? product.price ?? 0));
       return `<button type="button" class="pos-product" data-pos-add data-id="${Number(product.id)}" data-name="${attr(product.name)}" data-price="${Number(product.price || 0)}" data-stock="${Number(product.stock || 0)}">
         <div class="pos-product-main">
           <strong>${escapeHtml(product.name || '')}</strong>
@@ -423,18 +442,43 @@
         </div>
         <div class="pos-product-side">
           <span class="pos-product-price">${money(Number(product.price || 0))}</span>
+          <span class="pos-product-stock" style="font-size:11px;color:var(--color-grey);">R ${retail} · W ${wholesale}</span>
           <span class="pos-product-stock">Stock ${formatQty(product.stock)}</span>
         </div>
       </button>`;
     }).join('');
   };
 
-  const runPosSearch = async (term) => {
+  const renderPosPagination = (page, pages) => {
+    if (!paginationEl) {
+      return;
+    }
+    if (!pages || pages <= 1) {
+      paginationEl.innerHTML = '';
+      return;
+    }
+    let html = '<div class="pagination">';
+    for (let i = 1; i <= pages; i += 1) {
+      if (i === page) {
+        html += `<span>${i}</span>`;
+      } else {
+        html += `<button type="button" class="btn btn-outline btn-sm" data-pos-page="${i}">${i}</button>`;
+      }
+    }
+    html += '</div>';
+    paginationEl.innerHTML = html;
+  };
+
+  const runPosSearch = async (term, page = 1) => {
     if (!searchUrl) {
       return;
     }
+    posSearchPage = page;
+    syncPriceMode();
     const url = new URL(searchUrl, window.location.origin);
     url.searchParams.set('q', term);
+    url.searchParams.set('page', String(page));
+    url.searchParams.set('price_mode', getPriceMode());
     try {
       const response = await fetch(url.toString(), {
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -442,6 +486,7 @@
       const payload = await response.json();
       if (payload.ok && Array.isArray(payload.data)) {
         renderProducts(payload.data);
+        renderPosPagination(Number(payload.page || page), Number(payload.pages || 1));
       }
     } catch (e) {
       /* keep current catalogue on network errors */
@@ -450,14 +495,29 @@
 
   searchInput?.addEventListener('input', () => {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => runPosSearch(searchInput.value.trim()), 280);
+    searchTimer = setTimeout(() => runPosSearch(searchInput.value.trim(), 1), 280);
+  });
+
+  priceModeSelect?.addEventListener('change', () => {
+    syncPriceMode();
+    runPosSearch(searchInput?.value.trim() || '', 1);
   });
 
   root.querySelector('[data-pos-search-form]')?.addEventListener('submit', (event) => {
     event.preventDefault();
-    runPosSearch(searchInput?.value.trim() || '');
+    runPosSearch(searchInput?.value.trim() || '', 1);
   });
 
+  paginationEl?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-pos-page]');
+    if (!btn) {
+      return;
+    }
+    event.preventDefault();
+    runPosSearch(searchInput?.value.trim() || '', Number(btn.getAttribute('data-pos-page')));
+  });
+
+  syncPriceMode();
   render();
 })();
 

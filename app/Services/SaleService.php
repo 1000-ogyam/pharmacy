@@ -40,6 +40,7 @@ final class SaleService
         }
         $discount = (float) ($payload['discount'] ?? 0);
         $method = (string) ($payload['payment_method'] ?? 'cash');
+        $priceMode = (string) ($payload['price_mode'] ?? 'retail') === 'wholesale' ? 'wholesale' : 'retail';
         $taxRate = 0.0;
 
         $db = Database::instance();
@@ -53,7 +54,7 @@ final class SaleService
                 $productId = (int) $item['product_id'];
                 $qty = (float) $item['quantity'];
                 $allocation = $this->fefo->allocate($productId, $branchId, $qty);
-                $unitPrice = $this->pricing->unitPrice($productId, $branchId, $customer);
+                $unitPrice = $this->pricing->unitPriceForPos($productId, $branchId, $priceMode, $customer);
 
                 foreach ($allocation as $row) {
                     $line = $row['quantity'] * $unitPrice;
@@ -86,7 +87,7 @@ final class SaleService
                 'customer_id' => $customer?->id,
                 'user_id' => $userId,
                 'sale_number' => NumberService::next('POS-', 'sales', 'sale_number'),
-                'sale_type' => $payload['sale_type'] ?? 'retail',
+                'sale_type' => $payload['sale_type'] ?? $priceMode,
                 'status' => 'completed',
                 'subtotal' => $subtotal,
                 'discount' => $discount,

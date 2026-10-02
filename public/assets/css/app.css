@@ -448,6 +448,7 @@ input:focus, select:focus, textarea:focus {
 .help { color: var(--color-danger); font-size: 12px; }
 .searchbar { display: flex; gap: 8px; flex: 1; min-width: 0; }
 .searchbar input { flex: 1; }
+.searchbar select { min-width: 140px; }
 
 .flash {
   padding: 8px 12px;

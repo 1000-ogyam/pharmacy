@@ -18,7 +18,7 @@ $slot = $slot ?? $content ?? '';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>?v=17">
+    <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>?v=18">
     <script>
         try {
             if (localStorage.getItem('pharmacore.sidebar') === '1') {
@@ -30,7 +30,7 @@ $slot = $slot ?? $content ?? '';
 <body>
     <?= $slot ?>
     <?php \App\Core\View::include('partials.install-sheet'); ?>
-    <script src="<?= e(asset('js/app.js')) ?>?v=5"></script>
+    <script src="<?= e(asset('js/app.js')) ?>?v=6"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register(<?= json_encode(url('/sw.js')) ?>, { scope: <?= json_encode(url('/')) ?> }).catch(function () {});
