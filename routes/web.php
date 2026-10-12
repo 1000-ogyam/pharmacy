@@ -63,6 +63,8 @@ $router->group(['middleware' => ['auth', 'csrf', 'admin_delete']], function ($ro
     $router->post('/archives/{type}/{id}/restore', [ArchiveController::class, 'restore'])->middleware(['role:admin']);
     $router->delete('/archives/{type}/{id}', [ArchiveController::class, 'destroy'])->middleware(['role:admin']);
 
+    $router->get('/products/{id}/stock', [ProductController::class, 'stockForm'])->middleware(['role:' . $staff]);
+    $router->post('/products/{id}/stock', [ProductController::class, 'stockUpdate'])->middleware(['role:' . $staff]);
     $router->resource('/products', ProductController::class)->middleware(['role:' . $staff]);
     $router->get('/inventory', [InventoryController::class, 'index'])->middleware(['role:' . $staff]);
     $router->get('/inventory/batches', [BatchController::class, 'index'])->middleware(['role:' . $staff]);

@@ -1,8 +1,11 @@
-<?php /** @var array<int, array{retail?: float, wholesale_tier1?: float}> $priceMap */ ?>
+<?php
+/** @var array<int, array{retail?: float, wholesale_tier1?: float}> $priceMap */
+/** @var array<int, float> $stockMap */
+?>
 <div class="page-head">
     <div>
         <h2>Products</h2>
-        <p>Catalogue, packaging units, and pricing.</p>
+        <p>Catalogue, pricing, and branch stock.</p>
     </div>
     <?php if ($canMutate): ?>
     <a class="btn" data-modal data-modal-title="New product" data-modal-wide href="<?= e(url('/products/create')) ?>">New product</a>
@@ -22,6 +25,7 @@
                     <th>SKU</th>
                     <th>Name</th>
                     <th>Category</th>
+                    <th>Stock</th>
                     <th>Wholesale price</th>
                     <th>Retail price</th>
                     <th></th>
@@ -33,15 +37,18 @@
                     $prices = $priceMap[(int) $product->id] ?? [];
                     $wholesale = $prices['wholesale_tier1'] ?? null;
                     $retail = $prices['retail'] ?? null;
+                    $stock = $stockMap[(int) $product->id] ?? 0;
                 ?>
                 <tr>
                     <td><?= e($product->sku) ?></td>
                     <td><?= e($product->name) ?><?php if ($product->generic_name): ?><div style="color:var(--color-grey);font-size:12px;"><?= e($product->generic_name) ?></div><?php endif; ?></td>
                     <td><?= e($product->category ?: '—') ?></td>
+                    <td><?= e(format_qty($stock)) ?></td>
                     <td><?= $wholesale !== null ? e(money($wholesale)) : '—' ?></td>
                     <td><?= $retail !== null ? e(money($retail)) : '—' ?></td>
                     <td class="table-actions">
                         <?php if ($canMutate): ?>
+                        <a class="btn btn-outline btn-sm" data-modal data-modal-title="Adjust stock" href="<?= e(url('/products/' . $product->id . '/stock')) ?>">Stock</a>
                         <a class="btn btn-outline btn-sm" data-modal data-modal-title="Edit product" data-modal-wide href="<?= e(url('/products/' . $product->id . '/edit')) ?>">Edit</a>
                         <?php endif; ?>
                         <?php if ($canDelete): ?>

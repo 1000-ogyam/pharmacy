@@ -12,7 +12,9 @@ use App\Models\Product;
 use App\Models\ProductPrice;
 use App\Models\ProductUnit;
 use App\Models\StockLevel;
+use App\Services\StockService;
 use PDOException;
+use RuntimeException;
 
 final class ProductController extends Controller
 {
@@ -20,38 +22,59 @@ final class ProductController extends Controller
     {
         $page = (int) $request->query('page', 1);
         $q = trim((string) $request->query('q', ''));
-
-        if ($q !== '') {
-            [$likeSql, $likeParams] = sql_like_or(
-                ['name', 'sku', 'barcode', 'generic_name'],
-                $q,
-                'prod_q',
-            );
-            $result = Database::instance()->paginate(
-                'SELECT * FROM products WHERE deleted_at IS NULL AND ' . $likeSql . ' ORDER BY name',
-                $likeParams,
-                $page,
-            );
-            $result['data'] = array_map(static fn(array $row): Product => new Product($row), $result['data']);
-        } else {
-            $result = Product::query()->orderBy('name')->paginate(per_page(), $page);
-        }
-
-        $products = $result['data'];
-        $productIds = array_map(
-            static fn(Product $product): int => (int) $product->id,
-            $products,
-        );
+        $listed = $this->paginateProducts($page, $q);
 
         $this->view('products.index', [
             'title' => 'Products',
             'pageTitle' => 'Products',
-            'products' => $products,
-            'priceMap' => $this->priceMapForProducts($productIds),
-            'page' => $result['page'],
-            'pages' => $result['pages'],
+            'products' => $listed['products'],
+            'priceMap' => $listed['priceMap'],
+            'stockMap' => $listed['stockMap'],
+            'page' => $listed['page'],
+            'pages' => $listed['pages'],
             'q' => $q,
         ]);
+    }
+
+    public function stockForm(Request $request, int $id): never
+    {
+        $product = Product::findOrFail($id);
+        $branchId = $this->branchId();
+        $quantity = (new StockService())->levelQuantity((int) $product->id, $branchId);
+
+        $this->view('products.stock', [
+            'title' => 'Adjust stock',
+            'pageTitle' => 'Adjust stock',
+            'product' => $product,
+            'quantity' => $quantity,
+        ]);
+    }
+
+    public function stockUpdate(Request $request, int $id): never
+    {
+        if (!can_mutate_data()) {
+            abort(403, 'You cannot adjust stock.');
+        }
+
+        $product = Product::findOrFail($id);
+        $data = $this->validate($request->all(), [
+            'quantity' => 'required|numeric',
+        ]);
+
+        $target = max(0, (float) $data['quantity']);
+
+        try {
+            (new StockService())->setBranchQuantity(
+                (int) $product->id,
+                $this->branchId(),
+                $target,
+                (string) $product->sku,
+            );
+        } catch (RuntimeException $e) {
+            $this->backWithError($e->getMessage(), '/products');
+        }
+
+        $this->backWithSuccess('Stock updated for ' . $product->name . '.', '/products');
     }
 
     public function create(Request $request): never
@@ -219,6 +242,50 @@ final class ProductController extends Controller
         }
 
         $this->backWithSuccess('Product permanently deleted.', '/products');
+    }
+
+    /** @return array{products: list<Product>, priceMap: array<int, array{retail?: float, wholesale_tier1?: float}>, stockMap: array<int, float>, page: int, pages: int} */
+    private function paginateProducts(int $page, string $q): array
+    {
+        $branchId = $this->branchId();
+        $sql = 'SELECT p.*, COALESCE(sl.quantity, 0) AS stock_quantity
+                FROM products p
+                LEFT JOIN stock_levels sl ON sl.product_id = p.id AND sl.branch_id = :branch_id AND sl.deleted_at IS NULL
+                WHERE p.deleted_at IS NULL';
+        $params = [':branch_id' => $branchId];
+
+        if ($q !== '') {
+            [$likeSql, $likeParams] = sql_like_or(
+                ['p.name', 'p.sku', 'p.barcode', 'p.generic_name'],
+                $q,
+                'prod_q',
+            );
+            $sql .= ' AND ' . $likeSql;
+            $params = [...$params, ...$likeParams];
+        }
+
+        $sql .= ' ORDER BY p.name ASC';
+
+        $result = Database::instance()->paginate($sql, $params, $page);
+        $products = [];
+        $stockMap = [];
+        $productIds = [];
+
+        foreach ($result['data'] as $row) {
+            $productId = (int) $row['id'];
+            $stockMap[$productId] = (float) ($row['stock_quantity'] ?? 0);
+            unset($row['stock_quantity']);
+            $products[] = new Product($row);
+            $productIds[] = $productId;
+        }
+
+        return [
+            'products' => $products,
+            'priceMap' => $this->priceMapForProducts($productIds),
+            'stockMap' => $stockMap,
+            'page' => $result['page'],
+            'pages' => $result['pages'],
+        ];
     }
 
     private function priceForProduct(int $productId, string $priceType): ?float
