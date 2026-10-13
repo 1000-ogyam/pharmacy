@@ -9,7 +9,7 @@ require dirname(__DIR__) . '/app/bootstrap.php';
 
 $row = Database::instance()->fetch(
     'SELECT COUNT(*) AS cnt, COALESCE(SUM(total),0) AS total
-     FROM sales WHERE deleted_at IS NULL AND DATE(created_at) = CURDATE()'
+     FROM sales WHERE deleted_at IS NULL AND status = \'completed\' AND DATE(created_at) = CURDATE()'
 );
 
 $message = sprintf(

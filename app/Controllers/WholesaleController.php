@@ -68,12 +68,9 @@ final class WholesaleController extends Controller
         $this->view('wholesale.quote-form', [
             'title' => 'New quotation',
             'pageTitle' => 'New quotation',
-            'customers' => Customer::query()
-                ->where('is_active', 1)
-                ->where('branch_id', $branchId)
-                ->orderBy('name')
-                ->get(),
+            'customers' => $this->branchCustomers($branchId),
             'products' => $products,
+            'preselectCustomerId' => (int) $request->query('customer_id', 0),
         ]);
     }
 
@@ -286,5 +283,14 @@ final class WholesaleController extends Controller
 
         $quote->delete();
         $this->backWithSuccess('Quotation archived.', '/wholesale');
+    }
+
+    /** @return list<Customer> */
+    private function branchCustomers(int $branchId): array
+    {
+        return Customer::query()
+            ->where('branch_id', $branchId)
+            ->orderBy('name')
+            ->get();
     }
 }

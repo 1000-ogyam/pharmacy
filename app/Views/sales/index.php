@@ -44,6 +44,8 @@
                 <td>
                     <?php if ((string) ($row['status'] ?? '') === 'cancelled'): ?>
                         <span class="badge badge-danger">Cancelled</span>
+                    <?php elseif ((string) ($row['status'] ?? '') === 'returned'): ?>
+                        <span class="badge badge-warning">Returned</span>
                     <?php else: ?>
                         <span class="badge badge-success"><?= e(ucfirst((string) $row['status'])) ?></span>
                     <?php endif; ?>
@@ -51,6 +53,9 @@
                 <td class="table-actions">
                     <a class="btn btn-outline btn-sm" href="<?= e(url('/sales/' . $row['id'])) ?>">View</a>
                     <a class="btn btn-outline btn-sm" href="<?= e(url('/pos/receipt/' . $row['id'])) ?>">Receipt</a>
+                    <?php if ($canMutate && (string) ($row['status'] ?? '') === 'completed'): ?>
+                        <a class="btn btn-outline btn-sm" href="<?= e(url('/returns?sale_id=' . $row['id'])) ?>">Return</a>
+                    <?php endif; ?>
                     <?php if ($canMutate): ?>
                         <a class="btn btn-outline btn-sm" data-modal data-modal-wide data-modal-title="Edit sale" href="<?= e(url('/sales/' . $row['id'] . '/edit')) ?>">Edit</a>
                     <?php endif; ?>

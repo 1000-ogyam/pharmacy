@@ -24,10 +24,14 @@ final class CustomerController extends Controller
 
     public function create(Request $request): never
     {
+        $returnTo = $this->inlineReturnPath($request->query('return_to'));
+
         $this->view('customers.form', [
             'title' => 'New customer',
             'pageTitle' => 'New customer',
             'customer' => null,
+            'returnTo' => $returnTo,
+            'defaultType' => $returnTo === '/wholesale/quotations/create' ? 'wholesale' : 'retail',
         ]);
     }
 
@@ -38,7 +42,7 @@ final class CustomerController extends Controller
             'type' => 'required|in:retail,wholesale',
         ]);
 
-        Customer::create([
+        $customer = Customer::create([
             'branch_id' => auth()->branchId(),
             'type' => $data['type'],
             'name' => $data['name'],
@@ -52,6 +56,14 @@ final class CustomerController extends Controller
             'sms_opt_in' => $request->input('sms_opt_in') ? 1 : 0,
             'is_active' => 1,
         ]);
+
+        $returnTo = $this->inlineReturnPath($request->input('return_to'));
+        if ($returnTo !== null) {
+            $this->backWithSuccess(
+                'Customer saved.',
+                $returnTo . '?customer_id=' . (int) $customer->id,
+            );
+        }
 
         $this->backWithSuccess('Customer saved.', '/customers');
     }
@@ -69,6 +81,8 @@ final class CustomerController extends Controller
             'title' => 'Edit customer',
             'pageTitle' => 'Edit customer',
             'customer' => $customer,
+            'returnTo' => null,
+            'defaultType' => 'retail',
         ]);
     }
 
@@ -98,5 +112,12 @@ final class CustomerController extends Controller
         $this->assertSameBranch($customer);
         $customer->delete();
         $this->backWithSuccess('Customer archived.', '/customers');
+    }
+
+    private function inlineReturnPath(mixed $path): ?string
+    {
+        $path = trim((string) $path);
+
+        return $path === '/wholesale/quotations/create' ? $path : null;
     }
 }

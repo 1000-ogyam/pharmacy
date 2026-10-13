@@ -154,7 +154,7 @@ $sections = [
     <div class="help-acc-body">
         <p>Flow: quotation → convert → order and invoice. Any active customer at your branch can be quoted. Credit is checked on convert only when that customer has a credit limit.</p>
         <ol>
-            <li><strong>New quotation</strong>: pick the wholesale customer, <strong>Add line</strong> for product and qty, then save.</li>
+            <li><strong>New quotation</strong>: pick a customer (all branch customers appear in the list), or <strong>Add customer</strong> on the same form, then <strong>Add line</strong> for product and qty, and save.</li>
             <li>Administrators can <strong>Delete</strong> a quotation that has not been converted (archives it). Converted quotes stay linked to their order.</li>
             <li><strong>Convert</strong> on the quote row and confirm. The system checks sellable stock and credit limit. If either fails, the quote stays open — no half order.</li>
             <li>On success you get an order number and invoice. Stock is taken with FEFO.</li>
@@ -232,7 +232,7 @@ $sections = [
 <details class="help-acc" id="returns">
     <summary>Returns</summary>
     <div class="help-acc-body">
-        <p>Create return, select the original sale and a reason. Stock is restored to the batches that were sold. Use this for genuine returns, not to patch a wrong till total without a sale.</p>
+        <p>Return a sale from Returns or Sales history: pick a completed receipt (search by number or customer), add a reason, and save. Stock goes back to the original batches, the sale is marked returned, dashboard and reports no longer count it, and the customer is refunded (cashbook out or credit reduced).</p>
         <p class="help-jump"><a class="btn btn-sm" href="<?= e(url('/returns')) ?>">Returns</a></p>
     </div>
 </details>

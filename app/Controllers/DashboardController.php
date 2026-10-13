@@ -17,13 +17,13 @@ final class DashboardController extends Controller
 
         $todaySales = $db->fetch(
             'SELECT COALESCE(SUM(total),0) AS total, COUNT(*) AS cnt
-             FROM sales WHERE branch_id = :b AND deleted_at IS NULL AND DATE(created_at) = CURDATE()',
+             FROM sales WHERE branch_id = :b AND deleted_at IS NULL AND status = \'completed\' AND DATE(created_at) = CURDATE()',
             [':b' => $branchId]
         );
 
         $monthSales = $db->fetch(
             'SELECT COALESCE(SUM(total),0) AS total
-             FROM sales WHERE branch_id = :b AND deleted_at IS NULL AND created_at >= DATE_FORMAT(NOW(), "%Y-%m-01")',
+             FROM sales WHERE branch_id = :b AND deleted_at IS NULL AND status = \'completed\' AND created_at >= DATE_FORMAT(NOW(), "%Y-%m-01")',
             [':b' => $branchId]
         );
 

@@ -7,25 +7,26 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Database;
 use App\Core\Request;
-use App\Models\ProductReturn;
-use App\Models\ReturnItem;
 use App\Models\Sale;
-use App\Services\NumberService;
-use App\Services\StockService;
+use App\Services\ReturnService;
+use RuntimeException;
 
 final class ReturnController extends Controller
 {
     public function index(Request $request): never
     {
+        $sq = trim((string) $request->query('sq', ''));
+        $preselectSaleId = (int) $request->query('sale_id', 0);
+
         $result = Database::instance()->paginate(
-            'SELECT r.*, c.name AS customer_name
+            'SELECT r.*, c.name AS customer_name, s.sale_number
              FROM returns r
              LEFT JOIN customers c ON c.id = r.customer_id
+             LEFT JOIN sales s ON s.id = r.sale_id
              WHERE r.deleted_at IS NULL AND r.branch_id = :b
              ORDER BY r.id DESC',
-            [':b' => $this->branchId()]
+            [':b' => $this->branchId()],
         );
-        $sales = Sale::query()->where('branch_id', $this->branchId())->orderBy('id', 'DESC')->limit(50)->get();
 
         $this->view('returns.index', [
             'title' => 'Returns',
@@ -33,41 +34,61 @@ final class ReturnController extends Controller
             'rows' => $result['data'],
             'page' => $result['page'],
             'pages' => $result['pages'],
-            'sales' => $sales,
+            'sales' => $this->returnableSales($sq),
+            'sq' => $sq,
+            'preselectSaleId' => $preselectSaleId,
         ]);
     }
 
     public function store(Request $request): never
     {
-        $sale = Sale::findOrFail((int) $request->input('sale_id'));
-        $this->assertSameBranch($sale);
-        $items = Database::instance()->fetchAll(
-            'SELECT * FROM sale_items WHERE sale_id = :id AND deleted_at IS NULL',
-            [':id' => $sale->id]
-        );
-
-        $ret = ProductReturn::create([
-            'branch_id' => $sale->branch_id,
-            'sale_id' => $sale->id,
-            'customer_id' => $sale->customer_id,
-            'return_number' => NumberService::next('RTN-', 'returns', 'return_number'),
-            'reason' => $request->input('reason', 'Customer return'),
-            'status' => 'approved',
-            'total' => $sale->total,
-        ]);
-
-        $stock = new StockService();
-        foreach ($items as $item) {
-            ReturnItem::create([
-                'return_id' => $ret->id,
-                'sale_item_id' => $item['id'],
-                'product_id' => $item['product_id'],
-                'batch_id' => $item['batch_id'],
-                'quantity' => $item['quantity'],
-            ]);
-            $stock->increase((int) $item['product_id'], (int) $sale->branch_id, (int) $item['batch_id'], (float) $item['quantity']);
+        if (!can_mutate_data()) {
+            abort(403, 'You cannot create returns.');
         }
 
-        $this->backWithSuccess('Return captured and stock restored.', '/returns');
+        $sale = Sale::findOrFail((int) $request->input('sale_id'));
+        $this->assertSameBranch($sale);
+
+        $reason = trim((string) $request->input('reason', 'Customer return'));
+
+        try {
+            (new ReturnService())->processFullReturn($sale, $reason);
+        } catch (RuntimeException $e) {
+            $this->backWithError($e->getMessage(), '/returns');
+        }
+
+        $this->backWithSuccess('Return recorded. Stock restored and sale totals reversed.', '/returns');
+    }
+
+    /** @return list<Sale> */
+    private function returnableSales(string $q): array
+    {
+        $sql = 'SELECT s.*
+                FROM sales s
+                LEFT JOIN customers c ON c.id = s.customer_id
+                WHERE s.deleted_at IS NULL
+                  AND s.branch_id = :b
+                  AND s.status = :status
+                  AND NOT EXISTS (
+                      SELECT 1 FROM returns r
+                      WHERE r.sale_id = s.id AND r.deleted_at IS NULL
+                  )';
+        $params = [':b' => $this->branchId(), ':status' => 'completed'];
+
+        if ($q !== '') {
+            [$likeSql, $likeParams] = sql_like_or(
+                ['s.sale_number', 'c.name'],
+                $q,
+                'ret_sq',
+            );
+            $sql .= ' AND ' . $likeSql;
+            $params = [...$params, ...$likeParams];
+        }
+
+        $sql .= ' ORDER BY s.created_at DESC, s.id DESC LIMIT 100';
+
+        $rows = Database::instance()->fetchAll($sql, $params);
+
+        return array_map(static fn(array $row): Sale => new Sale($row), $rows);
     }
 }

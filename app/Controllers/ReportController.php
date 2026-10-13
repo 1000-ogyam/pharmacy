@@ -21,7 +21,7 @@ final class ReportController extends Controller
         $sales = $db->paginate(
             'SELECT DATE(created_at) AS d, COUNT(*) AS cnt, SUM(total) AS total
              FROM sales
-             WHERE branch_id = :b AND deleted_at IS NULL AND DATE(created_at) BETWEEN :from AND :to
+             WHERE branch_id = :b AND deleted_at IS NULL AND status = \'completed\' AND DATE(created_at) BETWEEN :from AND :to
              GROUP BY DATE(created_at)
              ORDER BY d DESC',
             $params,
@@ -33,7 +33,7 @@ final class ReportController extends Controller
              FROM sale_items si
              JOIN sales s ON s.id = si.sale_id
              JOIN products p ON p.id = si.product_id
-             WHERE s.branch_id = :b AND s.deleted_at IS NULL AND DATE(s.created_at) BETWEEN :from AND :to
+             WHERE s.branch_id = :b AND s.deleted_at IS NULL AND s.status = \'completed\' AND DATE(s.created_at) BETWEEN :from AND :to
              GROUP BY p.id, p.name
              ORDER BY total DESC',
             $params,

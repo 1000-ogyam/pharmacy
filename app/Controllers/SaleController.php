@@ -91,6 +91,10 @@ final class SaleController extends Controller
     public function update(Request $request, int $id): never
     {
         $sale = $this->findSale($id);
+        if ((string) $sale->status === 'returned') {
+            $this->backWithError('This sale was returned and cannot be changed.', '/sales/' . $id);
+        }
+
         $data = $this->validate($request->all(), [
             'notes' => 'max:255',
             'status' => 'required',

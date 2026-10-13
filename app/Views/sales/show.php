@@ -10,6 +10,9 @@
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <a class="btn btn-outline" href="<?= e(url('/sales')) ?>">Back to list</a>
         <a class="btn btn-outline" href="<?= e(url('/pos/receipt/' . $sale->id)) ?>">Print receipt</a>
+        <?php if ($canMutate && (string) $sale->status === 'completed'): ?>
+            <a class="btn btn-outline" href="<?= e(url('/returns?sale_id=' . $sale->id)) ?>">Return sale</a>
+        <?php endif; ?>
         <?php if ($canMutate): ?>
             <a class="btn" data-modal data-modal-wide data-modal-title="Edit sale" href="<?= e(url('/sales/' . $sale->id . '/edit')) ?>">Edit</a>
         <?php endif; ?>

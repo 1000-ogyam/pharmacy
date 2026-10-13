@@ -6,12 +6,16 @@
 <form method="post" action="<?= e($customer ? url('/customers/' . $customer->id) : url('/customers')) ?>">
     <?= csrf_field() ?>
     <?php if ($customer): ?><?= method_field('PUT') ?><?php endif; ?>
+    <?php if (!empty($returnTo)): ?>
+        <input type="hidden" name="return_to" value="<?= e($returnTo) ?>">
+    <?php endif; ?>
     <div class="form-grid">
         <div class="form-row full"><label>Name</label><input name="name" value="<?= e(old('name', $customer?->name ?? '')) ?>" required></div>
         <div class="form-row"><label>Type</label>
             <select name="type">
-                <option value="retail" <?= ($customer?->type ?? '') === 'retail' ? 'selected' : '' ?>>Retail</option>
-                <option value="wholesale" <?= ($customer?->type ?? '') === 'wholesale' ? 'selected' : '' ?>>Wholesale</option>
+                <?php $typeDefault = $customer?->type ?? ($defaultType ?? 'retail'); ?>
+                <option value="retail" <?= $typeDefault === 'retail' ? 'selected' : '' ?>>Retail</option>
+                <option value="wholesale" <?= $typeDefault === 'wholesale' ? 'selected' : '' ?>>Wholesale</option>
             </select>
         </div>
         <div class="form-row"><label>Phone</label><input name="phone" value="<?= e(old('phone', $customer?->phone ?? '')) ?>"></div>
