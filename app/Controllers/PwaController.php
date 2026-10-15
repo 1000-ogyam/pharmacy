@@ -9,6 +9,21 @@ use App\Core\Request;
 
 final class PwaController extends Controller
 {
+    public function serviceWorker(Request $request): never
+    {
+        $path = base_path('public/sw.js');
+        if (!is_readable($path)) {
+            abort(404, 'Service worker not found.');
+        }
+
+        header('Content-Type: application/javascript; charset=utf-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        $allowed = app_base_path() !== '' ? app_base_path() : '/';
+        header('Service-Worker-Allowed: ' . $allowed);
+        readfile($path);
+        exit;
+    }
+
     public function manifest(Request $request): never
     {
         $base = rtrim(app_base_path(), '/');

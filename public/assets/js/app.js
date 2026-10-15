@@ -809,6 +809,91 @@
 (() => {
   const money = (n) => 'GHS ' + (Number.isFinite(n) ? n : 0).toFixed(2);
 
+  const bindProductPicker = (wrapper) => {
+    if (!wrapper || wrapper.dataset.productPickerBound === '1') {
+      return;
+    }
+    const select = wrapper.querySelector('[data-line-product]');
+    const search = wrapper.querySelector('[data-product-picker-search]');
+    const list = wrapper.querySelector('[data-product-picker-list]');
+    if (!select || !search || !list) {
+      return;
+    }
+    wrapper.dataset.productPickerBound = '1';
+
+    const productOptions = () => [...select.options].filter((option) => option.value !== '');
+
+    const syncSearchFromSelect = () => {
+      const option = select.selectedOptions[0];
+      search.value = option && option.value ? option.textContent.trim() : '';
+    };
+
+    const renderList = (term) => {
+      const query = term.trim().toLowerCase();
+      list.innerHTML = '';
+      const matches = productOptions().filter((option) => {
+        if (!query) {
+          return true;
+        }
+        const blob = option.dataset.search || option.textContent.toLowerCase();
+        return blob.includes(query);
+      });
+
+      const slice = matches.slice(0, 100);
+      if (slice.length === 0) {
+        const empty = document.createElement('li');
+        empty.className = 'is-empty';
+        empty.textContent = query ? 'No products match your search.' : 'No products available.';
+        list.appendChild(empty);
+        list.hidden = false;
+        return;
+      }
+
+      slice.forEach((option) => {
+        const item = document.createElement('li');
+        item.dataset.value = option.value;
+        item.textContent = option.textContent.trim();
+        item.setAttribute('role', 'option');
+        list.appendChild(item);
+      });
+      list.hidden = false;
+    };
+
+    const pickOption = (value) => {
+      select.value = value;
+      syncSearchFromSelect();
+      list.hidden = true;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    search.addEventListener('focus', () => renderList(search.value));
+    search.addEventListener('input', () => {
+      select.value = '';
+      renderList(search.value);
+    });
+
+    list.addEventListener('mousedown', (event) => {
+      const item = event.target.closest('[data-value]');
+      if (!item) {
+        return;
+      }
+      event.preventDefault();
+      pickOption(item.dataset.value);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!wrapper.contains(event.target)) {
+        list.hidden = true;
+      }
+    });
+
+    syncSearchFromSelect();
+  };
+
+  const bindProductPickers = (root = document) => {
+    root.querySelectorAll('[data-product-picker]').forEach(bindProductPicker);
+  };
+
   const addRow = (table) => {
     const body = table.querySelector('[data-line-body]');
     const template = table.querySelector('[data-line-template]');
@@ -817,6 +902,7 @@
     }
     const row = template.content.firstElementChild.cloneNode(true);
     body.appendChild(row);
+    bindProductPickers(row);
     updateRow(row);
     updateGrand(table);
   };
@@ -916,8 +1002,12 @@
     updateGrand(row.closest('[data-line-table]'));
   });
 
+  bindProductPickers();
   seed();
-  document.addEventListener('pharmacore:content', () => seed());
+  document.addEventListener('pharmacore:content', () => {
+    bindProductPickers();
+    seed();
+  });
 })();
 
 (() => {

@@ -41,6 +41,7 @@ $router->post('/logout', [AuthController::class, 'logout'])->middleware(['auth',
 $router->post('/ussd/webhook', [UssdController::class, 'webhook']);
 $router->get('/help', [HelpController::class, 'index']);
 $router->get('/manifest.webmanifest', [PwaController::class, 'manifest']);
+$router->get('/sw.js', [PwaController::class, 'serviceWorker']);
 
 $staff = 'admin,manager,cashier,pharmacist,counter,warehouse,finance,wholesale';
 
