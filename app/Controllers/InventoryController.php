@@ -101,9 +101,9 @@ final class InventoryController extends Controller
              JOIN branches fb ON fb.id = st.from_branch_id
              JOIN branches tb ON tb.id = st.to_branch_id
              WHERE st.deleted_at IS NULL
-               AND (st.from_branch_id = :b OR st.to_branch_id = :b)
+               AND (st.from_branch_id = :from_b OR st.to_branch_id = :to_b)
              ORDER BY st.created_at DESC',
-            [':b' => $branchId],
+            [':from_b' => $branchId, ':to_b' => $branchId],
         );
 
         $this->view('inventory.transfers-index', [

@@ -15,7 +15,7 @@ $slot = $slot ?? $content ?? '';
     <link rel="icon" href="<?= e(asset('img/pl-logo.png')) ?>" type="image/png">
     <link rel="apple-touch-icon" href="<?= e(asset('img/pwa/apple-touch-180.png')) ?>">
     <link rel="manifest" href="<?= e(url('/manifest.webmanifest')) ?>">
-    <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>?v=29">
+    <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>?v=30">
     <script>
         try {
             if (localStorage.getItem('pharmacore.sidebar') === '1') {
@@ -27,7 +27,7 @@ $slot = $slot ?? $content ?? '';
 <body>
     <?= $slot ?>
     <?php \App\Core\View::include('partials.install-sheet'); ?>
-    <script src="<?= e(asset('js/app.js')) ?>?v=14"></script>
+    <script src="<?= e(asset('js/app.js')) ?>?v=15"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register(<?= json_encode(url('/sw.js')) ?>, { scope: <?= json_encode(url('/')) ?> })

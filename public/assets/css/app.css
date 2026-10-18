@@ -32,7 +32,7 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-html { height: 100%; }
+html { height: 100%; overflow-x: clip; }
 body {
   font-family: var(--font-base);
   background-color: var(--color-cream);
@@ -40,6 +40,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   min-height: 100%;
+  overflow-x: clip;
 }
 .app-shell, .auth-wrap { position: relative; }
 
@@ -47,7 +48,7 @@ a { color: var(--color-teal); text-decoration: none; }
 a:hover { color: var(--color-teal-dark); }
 img { max-width: 100%; display: block; }
 
-.app-shell { display: flex; min-height: 100vh; }
+.app-shell { display: flex; min-height: 100vh; width: 100%; max-width: 100%; overflow-x: clip; }
 .sidebar {
   width: var(--sidebar-w);
   background: #1e293b;
@@ -178,19 +179,34 @@ html.sidebar-collapsed .sidebar nav { padding: 8px 6px; overflow: visible; }
 html.sidebar-collapsed .nav-group { position: relative; }
 html.sidebar-collapsed .nav-group-items {
   position: absolute;
-  left: calc(100% + 10px);
+  left: calc(100% + 4px);
   top: 0;
   width: 210px;
   background: #334155;
   border: 1px solid #475569;
   border-radius: var(--radius-base);
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.28);
   z-index: 40;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--ease), visibility var(--ease), grid-template-rows var(--ease);
 }
-html.sidebar-collapsed .nav-group.is-open > .nav-group-items,
+html.sidebar-collapsed .nav-group-items::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+}
 html.sidebar-collapsed .nav-group:hover > .nav-group-items,
 html.sidebar-collapsed .nav-group:focus-within > .nav-group-items {
   grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 html.sidebar-collapsed .nav-group-inner { padding: 6px; }
 html.sidebar-collapsed .nav-group-inner .nav-link { justify-content: flex-start; padding: 7px 8px; }
@@ -209,7 +225,7 @@ html.sidebar-collapsed .nav-group-inner .nav-text { display: inline; }
   transition: opacity var(--ease);
 }
 
-.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.main { flex: 1; min-width: 0; max-width: 100%; display: flex; flex-direction: column; overflow-x: clip; }
 .navbar {
   background: #ffffff;
   border-bottom: 1px solid var(--color-border);
@@ -252,7 +268,15 @@ html.sidebar-collapsed .nav-group-inner .nav-text { display: inline; }
   background: var(--color-teal); color: #fff;
   display: grid; place-items: center; font-size: 11px; font-weight: 600;
 }
-.content { padding: 16px 20px 24px; flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; }
+.content {
+  padding: 16px 20px 24px;
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
 
 .page-head {
   display: flex;
@@ -293,6 +317,8 @@ html.sidebar-collapsed .nav-group-inner .nav-text { display: inline; }
   border: 1px solid var(--color-border);
   border-radius: var(--radius-base);
   box-shadow: var(--shadow);
+  min-width: 0;
+  max-width: 100%;
 }
 .card-body { padding: 16px; }
 .card-head {
@@ -380,7 +406,14 @@ a.stat:hover {
 .btn-lg { padding: 10px 16px; font-size: 14px; }
 .btn-block { width: 100%; }
 
-.table-wrap { overflow: auto; }
+.table-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-width: 100%;
+  width: 100%;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
 table.data { width: 100%; border-collapse: collapse; }
 table.data th, table.data td {
   text-align: left;
@@ -1018,6 +1051,34 @@ body.modal-open { overflow: hidden; }
   .auth-intro { grid-template-columns: minmax(150px, 220px) 1fr; }
 }
 @media (max-width: 900px) {
+  .content { padding: 12px 12px 20px; max-width: none; }
+  .page-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .page-head-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .page-head h2 { font-size: 18px; }
+  .navbar { padding: 10px 12px; }
+  table.data th,
+  table.data td {
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+  table.data.data-compact th,
+  table.data.data-compact td {
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+  .table-actions-nowrap {
+    white-space: normal;
+  }
+  .table-actions-nowrap .btn-xs {
+    margin-bottom: 2px;
+  }
   .nav-burger { display: inline-grid; }
   .sidebar {
     position: fixed;

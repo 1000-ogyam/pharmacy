@@ -6,11 +6,25 @@
     } catch (e) {}
   };
 
+  const isDesktopCollapsedFlyout = () =>
+    html.classList.contains('sidebar-collapsed') && window.matchMedia('(min-width: 901px)').matches;
+
+  const collapseFlyoutGroups = () => {
+    groups().forEach((group) => {
+      if (!group.classList.contains('is-current')) {
+        setGroupOpen(group, false);
+      }
+    });
+  };
+
   document.addEventListener('click', (event) => {
     if (event.target.closest('[data-sidebar-toggle]')) {
       event.preventDefault();
       html.classList.toggle('sidebar-collapsed');
       html.classList.remove('sidebar-open');
+      if (html.classList.contains('sidebar-collapsed')) {
+        collapseFlyoutGroups();
+      }
       persist();
       return;
     }
@@ -59,16 +73,32 @@
     }
   });
 
+  if (isDesktopCollapsedFlyout()) {
+    collapseFlyoutGroups();
+  }
+
+  groups().forEach((group) => {
+    group.addEventListener('mouseleave', () => {
+      if (!isDesktopCollapsedFlyout()) {
+        return;
+      }
+      if (!group.classList.contains('is-current')) {
+        setGroupOpen(group, false);
+      }
+    });
+  });
+
   document.addEventListener('click', (event) => {
     const toggle = event.target.closest('.nav-group-toggle');
     if (!toggle) {
-      if (!event.target.closest('.nav-group') && html.classList.contains('sidebar-collapsed')) {
-        groups().forEach((group) => {
-          if (!group.matches(':hover')) {
-            setGroupOpen(group, group.classList.contains('is-current'));
-          }
-        });
+      if (isDesktopCollapsedFlyout() && !event.target.closest('.nav-group')) {
+        collapseFlyoutGroups();
       }
+      return;
+    }
+
+    if (isDesktopCollapsedFlyout()) {
+      event.preventDefault();
       return;
     }
 
