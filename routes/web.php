@@ -68,21 +68,41 @@ $router->group(['middleware' => ['auth', 'csrf', 'admin_delete']], function ($ro
     $router->post('/products/{id}/stock', [ProductController::class, 'stockUpdate'])->middleware(['role:' . $staff]);
     $router->resource('/products', ProductController::class)->middleware(['role:' . $staff]);
     $router->get('/inventory', [InventoryController::class, 'index'])->middleware(['role:' . $staff]);
+    $router->get('/inventory/products/{productId}/reorder', [InventoryController::class, 'reorderForm'])->middleware(['role:' . $staff]);
+    $router->put('/inventory/products/{productId}/reorder', [InventoryController::class, 'reorderUpdate'])->middleware(['role:' . $staff]);
+    $router->patch('/inventory/products/{productId}/reorder', [InventoryController::class, 'reorderUpdate'])->middleware(['role:' . $staff]);
     $router->get('/inventory/batches', [BatchController::class, 'index'])->middleware(['role:' . $staff]);
+    $router->get('/inventory/batches/create', [BatchController::class, 'create'])->middleware(['role:' . $staff]);
+    $router->post('/inventory/batches', [BatchController::class, 'store'])->middleware(['role:' . $staff]);
+    $router->get('/inventory/batches/{id}', [BatchController::class, 'show'])->middleware(['role:' . $staff]);
+    $router->get('/inventory/batches/{id}/edit', [BatchController::class, 'edit'])->middleware(['role:' . $staff]);
+    $router->put('/inventory/batches/{id}', [BatchController::class, 'update'])->middleware(['role:' . $staff]);
+    $router->patch('/inventory/batches/{id}', [BatchController::class, 'update'])->middleware(['role:' . $staff]);
+    $router->delete('/inventory/batches/{id}', [BatchController::class, 'destroy'])->middleware(['role:' . $staff]);
     $router->post('/inventory/batches/{id}/recall', [BatchController::class, 'recall'])->middleware(['role:' . $staff]);
+    $router->get('/inventory/transfers', [InventoryController::class, 'transfersIndex'])->middleware(['role:' . $staff]);
     $router->get('/inventory/transfers/create', [InventoryController::class, 'transferForm'])->middleware(['role:' . $staff]);
     $router->post('/inventory/transfers', [InventoryController::class, 'transfer'])->middleware(['role:' . $staff]);
+    $router->get('/inventory/transfers/{id}', [InventoryController::class, 'transferShow'])->middleware(['role:' . $staff]);
 
     $router->resource('/customers', CustomerController::class)->middleware(['role:' . $staff]);
     $router->resource('/suppliers', SupplierController::class)->middleware(['role:' . $staff]);
     $router->resource('/purchase-orders', PurchaseOrderController::class)->middleware(['role:' . $staff]);
+    $router->get('/purchase-orders/{id}/receive', [PurchaseOrderController::class, 'receiveForm'])->middleware(['role:' . $staff]);
     $router->post('/purchase-orders/{id}/receive', [PurchaseOrderController::class, 'receive'])->middleware(['role:' . $staff]);
 
     $router->get('/wholesale', [WholesaleController::class, 'index'])->middleware(['role:' . $staff]);
     $router->get('/wholesale/quotations/create', [WholesaleController::class, 'createQuote'])->middleware(['role:' . $staff]);
+    $router->get('/wholesale/quotations/{id}', [WholesaleController::class, 'showQuote'])->middleware(['role:' . $staff]);
+    $router->get('/wholesale/quotations/{id}/edit', [WholesaleController::class, 'editQuote'])->middleware(['role:' . $staff]);
     $router->post('/wholesale/quotations', [WholesaleController::class, 'storeQuote'])->middleware(['role:' . $staff]);
+    $router->put('/wholesale/quotations/{id}', [WholesaleController::class, 'updateQuote'])->middleware(['role:' . $staff]);
+    $router->patch('/wholesale/quotations/{id}', [WholesaleController::class, 'updateQuote'])->middleware(['role:' . $staff]);
     $router->post('/wholesale/quotations/{id}/convert', [WholesaleController::class, 'convert'])->middleware(['role:' . $staff]);
     $router->delete('/wholesale/quotations/{id}', [WholesaleController::class, 'destroyQuote'])->middleware(['role:' . $staff]);
+    $router->get('/wholesale/orders/{id}/invoice/pdf', [WholesaleController::class, 'orderInvoicePdf'])->middleware(['role:' . $staff]);
+    $router->get('/wholesale/orders/{id}/invoice', [WholesaleController::class, 'orderInvoice'])->middleware(['role:' . $staff]);
+    $router->get('/wholesale/orders/{id}', [WholesaleController::class, 'showOrder'])->middleware(['role:' . $staff]);
 
     $router->get('/prescriptions', [PrescriptionController::class, 'index'])->middleware(['role:' . $staff]);
     $router->get('/prescriptions/create', [PrescriptionController::class, 'create'])->middleware(['role:' . $staff]);

@@ -20,6 +20,17 @@ final class PricingService
         return $this->priceByType($productId, $branchId, $priceType, $unitId);
     }
 
+    /** Wholesale list price from product_prices (tier 1, then retail). */
+    public function catalogPrice(int $productId, int $branchId): float
+    {
+        $wholesale = $this->priceByType($productId, $branchId, 'wholesale_tier1', null);
+        if ($wholesale > 0) {
+            return $wholesale;
+        }
+
+        return $this->priceByType($productId, $branchId, 'retail', null);
+    }
+
     public function unitPriceForPos(
         int $productId,
         int $branchId,

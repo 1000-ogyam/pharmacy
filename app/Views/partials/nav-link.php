@@ -12,6 +12,7 @@ $icons = [
     '/products' => 'M8 4h8l2 4H6zm-2 4h16v12H6z',
     '/inventory' => 'M4 7l8-3 8 3-8 3zm0 0v10l8 3 8-3V7',
     '/inventory/batches' => 'M4 7h16M4 12h16M4 17h16',
+    '/inventory/transfers' => 'M8 7h8l4 4v10H4V7h4z',
     '/purchase-orders' => 'M7 4h10v16H7zm3 4h4M10 12h4M10 16h3',
     '/suppliers' => 'M3 17h18M5 17V9h8v8m3-5h3l2 3v2h-5z',
     '/prescriptions' => 'M8 3h8v18H8zm3 5h2m-1 0v6',

@@ -8,7 +8,7 @@
         <a class="btn btn-outline" href="<?= e(url('/pos')) ?>">New sale</a>
     </div>
 </div>
-<div class="card receipt-card">
+<div class="card receipt-card print-receipt">
     <div class="card-body">
         <h3>PL Pharmaceuticals</h3>
         <p><?= e($branch?->name ?: 'Retail branch') ?></p>

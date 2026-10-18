@@ -22,6 +22,7 @@
                 ['href' => '/products', 'label' => 'Products'],
                 ['href' => '/inventory', 'label' => 'Stock levels'],
                 ['href' => '/inventory/batches', 'label' => 'Batches'],
+                ['href' => '/inventory/transfers', 'label' => 'Transfers'],
                 ['href' => '/purchase-orders', 'label' => 'Purchase orders'],
                 ['href' => '/suppliers', 'label' => 'Suppliers'],
             ],

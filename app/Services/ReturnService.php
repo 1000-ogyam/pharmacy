@@ -99,7 +99,9 @@ final class ReturnService
         $branchId = (int) $sale->branch_id;
         $total = (float) $sale->total;
         $ref = (string) $ret->return_number;
-        $useCredit = (string) $sale->payment_status === 'credit';
+        $paymentStatus = (string) $sale->payment_status;
+        $useCredit = $paymentStatus === 'credit';
+        $onInvoice = $paymentStatus === 'invoice';
 
         if ($useCredit && !empty($sale->customer_id)) {
             $customer = Customer::find((int) $sale->customer_id);
@@ -108,21 +110,25 @@ final class ReturnService
                     'credit_balance' => max(0, round((float) $customer->credit_balance - $total, 2)),
                 ]);
             }
-        } else {
+        } elseif (!$onInvoice) {
             $payment = Database::instance()->fetch(
                 'SELECT method FROM payments
                  WHERE payable_type = :type AND payable_id = :id AND deleted_at IS NULL
                  ORDER BY id DESC LIMIT 1',
                 [':type' => 'sale', ':id' => (int) $sale->id],
             );
-            $method = (string) ($payment['method'] ?? 'cash');
-            $this->ledger->cashOut($branchId, $total, $method, 'Return ' . $ref, $ref);
+            if ($payment !== null) {
+                $method = (string) ($payment['method'] ?? 'cash');
+                $this->ledger->cashOut($branchId, $total, $method, 'Return ' . $ref, $ref);
+            }
         }
+
+        $balanceAccount = ($useCredit || $onInvoice) ? '1100' : '1000';
 
         $this->ledger->post($branchId, '4000', $total, 0, 'Return ' . $ref, 'return', (int) $ret->id);
         $this->ledger->post(
             $branchId,
-            $useCredit ? '1100' : '1000',
+            $balanceAccount,
             0,
             $total,
             'Return ' . $ref,

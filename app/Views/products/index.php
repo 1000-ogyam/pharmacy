@@ -19,13 +19,13 @@
     </div>
     <div data-live-results>
     <div class="table-wrap">
-        <table class="data">
+        <table class="data data-compact">
             <thead>
                 <tr>
                     <th>SKU</th>
                     <th>Name</th>
                     <th>Category</th>
-                    <th>Stock</th>
+                    <th>On hand</th>
                     <th>Wholesale price</th>
                     <th>Retail price</th>
                     <th></th>
@@ -46,13 +46,13 @@
                     <td><?= e(format_qty($stock)) ?></td>
                     <td><?= $wholesale !== null ? e(money($wholesale)) : '—' ?></td>
                     <td><?= $retail !== null ? e(money($retail)) : '—' ?></td>
-                    <td class="table-actions">
+                    <td class="table-actions table-actions-nowrap">
                         <?php if ($canMutate): ?>
-                        <a class="btn btn-outline btn-sm" data-modal data-modal-title="Adjust stock" href="<?= e(url('/products/' . $product->id . '/stock')) ?>">Stock</a>
-                        <a class="btn btn-outline btn-sm" data-modal data-modal-title="Edit product" data-modal-wide href="<?= e(url('/products/' . $product->id . '/edit')) ?>">Edit</a>
+                        <a class="btn btn-outline btn-xs" data-modal data-modal-title="Stock adjustment — <?= e($product->name) ?>" href="<?= e(url('/products/' . $product->id . '/stock')) ?>">Adjust</a>
+                        <a class="btn btn-outline btn-xs" data-modal data-modal-title="Edit product" data-modal-wide href="<?= e(url('/products/' . $product->id . '/edit')) ?>">Edit</a>
                         <?php endif; ?>
                         <?php if ($canDelete): ?>
-                        <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Permanently delete this product? This cannot be undone." data-modal-title="Delete product" data-action="<?= e(url('/products/' . $product->id)) ?>" data-method="DELETE">Delete</button>
+                        <button type="button" class="btn btn-danger btn-xs" data-modal-confirm="Permanently delete this product? This cannot be undone." data-modal-title="Delete product" data-action="<?= e(url('/products/' . $product->id)) ?>" data-method="DELETE">Delete</button>
                         <?php endif; ?>
                     </td>
                 </tr>

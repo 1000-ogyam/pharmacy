@@ -10,7 +10,7 @@ use Dompdf\Options;
 
 final class PdfService
 {
-    public function render(string $template, array $data, string $filename = 'document.pdf'): never
+    public function render(string $template, array $data, string $filename = 'document.pdf', bool $download = false): never
     {
         $html = View::render($template, $data, null);
 
@@ -22,7 +22,7 @@ final class PdfService
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
-        $dompdf->stream($filename, ['Attachment' => false]);
+        $dompdf->stream($filename, ['Attachment' => $download]);
         exit;
     }
 }

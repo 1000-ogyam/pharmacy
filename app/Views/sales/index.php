@@ -2,7 +2,7 @@
 <div class="page-head">
     <div>
         <h2>Sales history</h2>
-        <p>Retail and counter sales at your branch.</p>
+        <p>Completed retail, wholesale, and counter sales at your branch.</p>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <a class="btn btn-outline" href="<?= e(url('/archives?type=sales')) ?>">Archives</a>
@@ -19,7 +19,7 @@
     </form>
 </div></div>
 <div class="card" style="margin-top:16px;" data-live-results><div class="table-wrap">
-    <table class="data">
+    <table class="data data-compact">
         <thead>
             <tr>
                 <th>Receipt</th>
@@ -50,17 +50,17 @@
                         <span class="badge badge-success"><?= e(ucfirst((string) $row['status'])) ?></span>
                     <?php endif; ?>
                 </td>
-                <td class="table-actions">
-                    <a class="btn btn-outline btn-sm" href="<?= e(url('/sales/' . $row['id'])) ?>">View</a>
-                    <a class="btn btn-outline btn-sm" href="<?= e(url('/pos/receipt/' . $row['id'])) ?>">Receipt</a>
+                <td class="table-actions table-actions-nowrap">
+                    <a class="btn btn-outline btn-xs" href="<?= e(url('/sales/' . $row['id'])) ?>">View</a>
+                    <a class="btn btn-outline btn-xs" href="<?= e(url('/pos/receipt/' . $row['id'])) ?>">Receipt</a>
                     <?php if ($canMutate && (string) ($row['status'] ?? '') === 'completed'): ?>
-                        <a class="btn btn-outline btn-sm" href="<?= e(url('/returns?sale_id=' . $row['id'])) ?>">Return</a>
+                        <a class="btn btn-outline btn-xs" href="<?= e(url('/returns?sale_id=' . $row['id'])) ?>">Return</a>
                     <?php endif; ?>
                     <?php if ($canMutate): ?>
-                        <a class="btn btn-outline btn-sm" data-modal data-modal-wide data-modal-title="Edit sale" href="<?= e(url('/sales/' . $row['id'] . '/edit')) ?>">Edit</a>
+                        <a class="btn btn-outline btn-xs" data-modal data-modal-wide data-modal-title="Edit sale" href="<?= e(url('/sales/' . $row['id'] . '/edit')) ?>">Edit</a>
                     <?php endif; ?>
                     <?php if ($canDelete && (string) ($row['status'] ?? '') !== 'cancelled'): ?>
-                        <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Archive this sale? Stock will be restored if not already cancelled." data-modal-title="Archive sale" data-action="<?= e(url('/sales/' . $row['id'])) ?>" data-method="DELETE">Archive</button>
+                        <button type="button" class="btn btn-danger btn-xs" data-modal-confirm="Archive this sale? Stock will be restored if not already cancelled." data-modal-title="Archive sale" data-action="<?= e(url('/sales/' . $row['id'])) ?>" data-method="DELETE">Archive</button>
                     <?php endif; ?>
                 </td>
             </tr>

@@ -24,7 +24,12 @@
         </div>
         <div class="form-row"><label>Quantity</label><input type="number" step="0.01" name="quantity" required></div>
     </div>
-    <button class="btn" style="margin-top:16px;">Transfer</button>
+    <div class="modal-form-actions">
+        <?php if ($isModal): ?>
+            <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+        <?php endif; ?>
+        <button class="btn" type="submit">Transfer</button>
+    </div>
 </form>
 <?php if (!$isModal): ?>
 </div></div>

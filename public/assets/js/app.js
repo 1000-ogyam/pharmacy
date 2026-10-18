@@ -98,29 +98,53 @@
   const bodyEl = modal.querySelector('.modal-body');
   const dialogEl = modal.querySelector('.modal-dialog');
   const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  let closeTimer = 0;
+
+  const focusModal = () => {
+    const closeBtn = modal.querySelector('.modal-close');
+    if (closeBtn instanceof HTMLElement) {
+      closeBtn.focus();
+    } else {
+      bodyEl.focus();
+    }
+  };
 
   const openModal = (title, html, wide = false) => {
+    window.clearTimeout(closeTimer);
     titleEl.textContent = title;
     bodyEl.innerHTML = html;
+    dialogEl.classList.remove('is-open');
     dialogEl.classList.toggle('wide', wide);
     modal.hidden = false;
     document.body.classList.add('modal-open');
+    bodyEl.scrollTop = 0;
+    requestAnimationFrame(() => {
+      dialogEl.classList.add('is-open');
+      focusModal();
+    });
   };
 
   const closeModal = () => {
-    modal.hidden = true;
-    bodyEl.innerHTML = '';
-    document.body.classList.remove('modal-open');
+    dialogEl.classList.remove('is-open');
+    window.clearTimeout(closeTimer);
+    closeTimer = window.setTimeout(() => {
+      modal.hidden = true;
+      bodyEl.innerHTML = '';
+      document.body.classList.remove('modal-open');
+    }, 180);
   };
 
-  const confirmHtml = (message) => {
+  const confirmHtml = (message, danger = false) => {
     const wrap = document.createElement('div');
+    wrap.className = 'modal-form modal-form-confirm';
     const text = document.createElement('p');
+    text.className = 'modal-form-intro';
     text.textContent = message;
     wrap.appendChild(text);
     const actions = document.createElement('div');
-    actions.className = 'modal-actions';
-    actions.innerHTML = '<button type="button" class="btn btn-outline" data-modal-close>Cancel</button><button type="button" class="btn btn-danger" data-confirm-ok>Confirm</button>';
+    actions.className = 'modal-form-actions';
+    const okClass = danger ? 'btn btn-danger' : 'btn';
+    actions.innerHTML = '<button type="button" class="btn btn-outline" data-modal-close>Cancel</button><button type="button" class="' + okClass + '" data-confirm-ok>Confirm</button>';
     wrap.appendChild(actions);
     return wrap.innerHTML;
   };
@@ -173,7 +197,10 @@
       if (confirmTrigger.dataset.status) {
         extra.status = confirmTrigger.dataset.status;
       }
-      openModal(confirmTrigger.getAttribute('data-modal-title') || 'Confirm', confirmHtml(message));
+      openModal(
+        confirmTrigger.getAttribute('data-modal-title') || 'Confirm',
+        confirmHtml(message, confirmTrigger.hasAttribute('data-confirm-danger')),
+      );
       bodyEl.querySelector('[data-confirm-ok]')?.addEventListener('click', () => {
         submitAction(action, method, extra);
       });
@@ -209,7 +236,11 @@
       }
       const url = new URL(href, window.location.origin);
       url.searchParams.set('modal', '1');
-      openModal(fetchTrigger.getAttribute('data-modal-title') || fetchTrigger.textContent.trim(), '<p>Loading…</p>', fetchTrigger.hasAttribute('data-modal-wide'));
+      openModal(
+        fetchTrigger.getAttribute('data-modal-title') || fetchTrigger.textContent.trim(),
+        '<div class="modal-loading-state" role="status"><span class="modal-spinner" aria-hidden="true"></span> Loading…</div>',
+        fetchTrigger.hasAttribute('data-modal-wide'),
+      );
       try {
         const response = await fetch(url.toString(), {
           headers: { 'X-Pharmacore-Modal': '1' },
@@ -217,13 +248,14 @@
         });
         const html = await response.text();
         if (!response.ok) {
-          bodyEl.innerHTML = '<p>Could not load this form.</p>';
+          bodyEl.innerHTML = '<p class="modal-form-intro">Could not load this content. Close and try again.</p>';
           return;
         }
         bodyEl.innerHTML = html;
+        bodyEl.scrollTop = 0;
         document.dispatchEvent(new CustomEvent('pharmacore:content'));
       } catch {
-        bodyEl.innerHTML = '<p>Could not load this form.</p>';
+        bodyEl.innerHTML = '<p class="modal-form-intro">Could not load this content. Close and try again.</p>';
       }
     }
   });
@@ -903,11 +935,17 @@
     const row = template.content.firstElementChild.cloneNode(true);
     body.appendChild(row);
     bindProductPickers(row);
-    updateRow(row);
+    void updateRow(row);
     updateGrand(table);
   };
 
-  const updateRow = (row) => {
+  const isWholesaleQuoteTable = (table) => table?.hasAttribute('data-wholesale-quote-table') ?? false;
+  const isPurchaseOrderTable = (table) => table?.hasAttribute('data-purchase-order-table') ?? false;
+
+  const unitPriceFromProductOption = (option) => parseFloat(option?.dataset.unitPrice || '') || 0;
+  const unitCostFromProductOption = (option) => parseFloat(option?.dataset.unitCost || '') || 0;
+
+  const updateRow = async (row) => {
     const select = row.querySelector('[data-line-product]');
     const stockEl = row.querySelector('[data-line-stock]');
     if (select && stockEl) {
@@ -915,7 +953,68 @@
       stockEl.textContent = option?.dataset.stock || '—';
     }
 
-    const qty = parseFloat(row.querySelector('[data-line-qty]')?.value || '');
+    const table = row.closest('[data-line-table]');
+    const qty = parseFloat(row.querySelector('[data-line-qty]')?.value || '') || 0;
+
+    if (table && isWholesaleQuoteTable(table)) {
+      const option = select?.selectedOptions[0];
+      const productId = select?.value || '';
+      const unitEl = row.querySelector('[data-line-unit-price]');
+      const amountEl = row.querySelector('[data-line-amount]');
+
+      if (!productId || !option) {
+        delete row.dataset.unitPrice;
+        if (unitEl) {
+          unitEl.textContent = '—';
+        }
+        if (amountEl) {
+          amountEl.textContent = '—';
+        }
+        updateGrand(table);
+        return;
+      }
+
+      const price = unitPriceFromProductOption(option);
+      row.dataset.unitPrice = String(price);
+      if (unitEl) {
+        unitEl.textContent = price > 0 ? money(price) : '—';
+      }
+      if (amountEl) {
+        amountEl.textContent = qty > 0 && price > 0 ? money(qty * price) : '—';
+      }
+      updateGrand(table);
+      return;
+    }
+
+    if (table && isPurchaseOrderTable(table)) {
+      const option = select?.selectedOptions[0];
+      const productId = select?.value || '';
+      const costInput = row.querySelector('[data-line-cost]');
+      const amountEl = row.querySelector('[data-line-amount]');
+
+      if (productId && option && costInput && costInput.dataset.userEdited !== '1') {
+        const suggested = unitCostFromProductOption(option);
+        if (suggested > 0) {
+          costInput.value = String(suggested);
+        }
+      }
+
+      const cost = parseFloat(costInput?.value || '');
+      if (!productId || !option) {
+        if (amountEl) {
+          amountEl.textContent = '—';
+        }
+        updateGrand(table);
+        return;
+      }
+
+      if (amountEl) {
+        amountEl.textContent = qty > 0 && cost >= 0 && !Number.isNaN(cost) ? money(qty * cost) : '—';
+      }
+      updateGrand(table);
+      return;
+    }
+
     const cost = parseFloat(row.querySelector('[data-line-cost]')?.value || '');
     const totalEl = row.querySelector('[data-line-total]');
     if (totalEl) {
@@ -931,7 +1030,23 @@
     let sum = 0;
     let has = false;
     table.querySelectorAll('[data-line-row]').forEach((row) => {
-      const qty = parseFloat(row.querySelector('[data-line-qty]')?.value || '');
+      const qty = parseFloat(row.querySelector('[data-line-qty]')?.value || '') || 0;
+      if (isWholesaleQuoteTable(table)) {
+        const price = parseFloat(row.dataset.unitPrice || '');
+        if (qty > 0 && !Number.isNaN(price)) {
+          sum += qty * price;
+          has = true;
+        }
+        return;
+      }
+      if (isPurchaseOrderTable(table)) {
+        const cost = parseFloat(row.querySelector('[data-line-cost]')?.value || '');
+        if (qty > 0 && !Number.isNaN(cost)) {
+          sum += qty * cost;
+          has = true;
+        }
+        return;
+      }
       const cost = parseFloat(row.querySelector('[data-line-cost]')?.value || '');
       if (qty > 0 && !Number.isNaN(cost)) {
         sum += qty * cost;
@@ -941,13 +1056,125 @@
     grand.textContent = has ? money(sum) : '—';
   };
 
+  const fillQuoteRow = (row, line) => {
+    const select = row.querySelector('[data-line-product]');
+    const qtyInput = row.querySelector('[data-line-qty]');
+    const search = row.querySelector('[data-product-picker-search]');
+    if (select) {
+      select.value = String(line.product_id);
+    }
+    if (qtyInput) {
+      qtyInput.value = String(line.quantity);
+    }
+    const option = select?.selectedOptions[0];
+    if (search && option && option.value) {
+      search.value = option.textContent.trim();
+    }
+    void updateRow(row);
+  };
+
+  const fillPurchaseOrderRow = (row, line) => {
+    const select = row.querySelector('[data-line-product]');
+    const qtyInput = row.querySelector('[data-line-qty]');
+    const costInput = row.querySelector('[data-line-cost]');
+    const search = row.querySelector('[data-product-picker-search]');
+    if (select) {
+      select.value = String(line.product_id);
+    }
+    if (qtyInput) {
+      qtyInput.value = String(line.quantity);
+    }
+    if (costInput && line.unit_cost != null) {
+      costInput.value = String(line.unit_cost);
+      costInput.dataset.userEdited = '1';
+    }
+    const option = select?.selectedOptions[0];
+    if (search && option && option.value) {
+      search.value = option.textContent.trim();
+    }
+    void updateRow(row);
+  };
+
+  const seedWholesaleQuoteLines = (root = document) => {
+    root.querySelectorAll('form[data-wholesale-quote]').forEach((form) => {
+      if (form.dataset.initialLinesSeeded === '1') {
+        return;
+      }
+      let lines = [];
+      try {
+        lines = JSON.parse(form.dataset.initialLines || '[]');
+      } catch {
+        lines = [];
+      }
+      const table = form.querySelector('[data-line-table]');
+      const body = table?.querySelector('[data-line-body]');
+      if (!table || !body || lines.length === 0) {
+        return;
+      }
+      body.innerHTML = '';
+      lines.forEach((line) => {
+        addRow(table);
+        const row = body.lastElementChild;
+        if (row) {
+          fillQuoteRow(row, line);
+        }
+      });
+      updateGrand(table);
+      form.dataset.initialLinesSeeded = '1';
+    });
+  };
+
+  const seedPurchaseOrderLines = (root = document) => {
+    root.querySelectorAll('form[data-purchase-order]').forEach((form) => {
+      if (form.dataset.initialLinesSeeded === '1') {
+        return;
+      }
+      let lines = [];
+      try {
+        lines = JSON.parse(form.dataset.initialLines || '[]');
+      } catch {
+        lines = [];
+      }
+      const table = form.querySelector('[data-line-table]');
+      const body = table?.querySelector('[data-line-body]');
+      if (!table || !body || lines.length === 0) {
+        return;
+      }
+      body.innerHTML = '';
+      lines.forEach((line) => {
+        addRow(table);
+        const row = body.lastElementChild;
+        if (row) {
+          fillPurchaseOrderRow(row, line);
+        }
+      });
+      updateGrand(table);
+      form.dataset.initialLinesSeeded = '1';
+    });
+  };
+
   const seed = (root = document) => {
     root.querySelectorAll('[data-line-table]').forEach((table) => {
       const body = table.querySelector('[data-line-body]');
-      if (body && body.children.length === 0) {
-        addRow(table);
+      if (!body || body.children.length > 0) {
+        return;
       }
+      const form = table.closest('[data-wholesale-quote], [data-purchase-order]');
+      let initial = [];
+      if (form?.dataset.initialLines) {
+        try {
+          initial = JSON.parse(form.dataset.initialLines);
+        } catch {
+          initial = [];
+        }
+      }
+      if (initial.length > 0) {
+        return;
+      }
+      addRow(table);
     });
+    seedWholesaleQuoteLines(root);
+    seedPurchaseOrderLines(root);
   };
 
   document.addEventListener('click', (event) => {
@@ -976,7 +1203,7 @@
       row.querySelectorAll('input, select').forEach((field) => {
         field.value = '';
       });
-      updateRow(row);
+      void updateRow(row);
       updateGrand(table);
       return;
     }
@@ -985,20 +1212,35 @@
   });
 
   document.addEventListener('input', (event) => {
+    const costField = event.target.closest('[data-line-cost]');
+    if (costField) {
+      costField.dataset.userEdited = '1';
+    }
     const row = event.target.closest('[data-line-row]');
     if (!row) {
       return;
     }
-    updateRow(row);
+    void updateRow(row);
     updateGrand(row.closest('[data-line-table]'));
   });
 
   document.addEventListener('change', (event) => {
+    if (event.target.matches('[data-line-product]')) {
+      const row = event.target.closest('[data-line-row]');
+      const costInput = row?.querySelector('[data-line-cost]');
+      if (costInput) {
+        delete costInput.dataset.userEdited;
+      }
+    }
+    const costField = event.target.closest('[data-line-cost]');
+    if (costField) {
+      costField.dataset.userEdited = '1';
+    }
     const row = event.target.closest('[data-line-row]');
     if (!row) {
       return;
     }
-    updateRow(row);
+    void updateRow(row);
     updateGrand(row.closest('[data-line-table]'));
   });
 
@@ -1008,6 +1250,81 @@
     bindProductPickers();
     seed();
   });
+})();
+
+(() => {
+  const fmtQty = (value) => {
+    const n = Number(value);
+    if (Number.isNaN(n)) {
+      return '0';
+    }
+    if (Math.abs(n - Math.round(n)) < 0.0001) {
+      return String(Math.round(n));
+    }
+    return n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  };
+
+  const bindStockAdjust = (root = document) => {
+    root.querySelectorAll('form[data-stock-adjust]').forEach((form) => {
+      if (form.dataset.stockAdjustBound === '1') {
+        return;
+      }
+      form.dataset.stockAdjustBound = '1';
+
+      const current = parseFloat(form.dataset.currentOnHand || '0') || 0;
+      const sellable = parseFloat(form.dataset.sellable || '0') || 0;
+      const preview = form.querySelector('[data-adjust-preview]');
+      const hint = form.querySelector('[data-adjust-hint]');
+      const submit = form.querySelector('[data-adjust-submit]');
+
+      const update = () => {
+        const mode = form.querySelector('[name="adjustment_mode"]:checked')?.value || 'add';
+        const amt = parseFloat(form.querySelector('[name="amount"]')?.value || '') || 0;
+
+        if (hint) {
+          hint.textContent = mode === 'remove'
+            ? 'Removes from sellable batches (FEFO). Cannot remove more than sellable quantity.'
+            : 'Adds to on-hand and sellable batches (adjustment batch).';
+        }
+
+        if (submit) {
+          submit.textContent = mode === 'remove' ? 'Apply removal' : 'Apply addition';
+        }
+
+        if (!preview) {
+          return;
+        }
+
+        if (amt <= 0) {
+          preview.textContent = '';
+          preview.classList.remove('is-error');
+          return;
+        }
+
+        if (mode === 'remove') {
+          if (amt > sellable + 0.0001) {
+            preview.textContent = `Cannot remove ${fmtQty(amt)} — only ${fmtQty(sellable)} is sellable.`;
+            preview.classList.add('is-error');
+            return;
+          }
+          preview.classList.remove('is-error');
+          const after = Math.max(0, current - amt);
+          preview.textContent = `After removal: ${fmtQty(after)} on hand (${fmtQty(Math.max(0, sellable - amt))} sellable).`;
+          return;
+        }
+
+        preview.classList.remove('is-error');
+        preview.textContent = `After addition: ${fmtQty(current + amt)} on hand (${fmtQty(sellable + amt)} sellable).`;
+      };
+
+      form.addEventListener('input', update);
+      form.addEventListener('change', update);
+      update();
+    });
+  };
+
+  bindStockAdjust();
+  document.addEventListener('pharmacore:content', () => bindStockAdjust());
 })();
 
 (() => {

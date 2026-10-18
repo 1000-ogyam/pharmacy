@@ -9,6 +9,7 @@
             'links' => [
                 ['href' => '/inventory', 'label' => 'Stock'],
                 ['href' => '/inventory/batches', 'label' => 'Batches'],
+                ['href' => '/inventory/transfers', 'label' => 'Transfers'],
                 ['href' => '/products', 'label' => 'Products'],
                 ['href' => '/purchase-orders', 'label' => 'Purchase orders'],
                 ['href' => '/suppliers', 'label' => 'Suppliers'],

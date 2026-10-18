@@ -3,11 +3,14 @@
 <div class="page-head"><div><h2><?= e($customer ? 'Edit customer' : 'New customer') ?></h2></div></div>
 <div class="card"><div class="card-body">
 <?php endif; ?>
-<form method="post" action="<?= e($customer ? url('/customers/' . $customer->id) : url('/customers')) ?>">
+<form class="modal-form" method="post" action="<?= e($customer ? url('/customers/' . $customer->id) : url('/customers')) ?>">
     <?= csrf_field() ?>
     <?php if ($customer): ?><?= method_field('PUT') ?><?php endif; ?>
     <?php if (!empty($returnTo)): ?>
         <input type="hidden" name="return_to" value="<?= e($returnTo) ?>">
+    <?php endif; ?>
+    <?php if ($isModal && !$customer): ?>
+        <p class="modal-form-intro">Add a customer to your branch. They will appear in the quotation list after save.</p>
     <?php endif; ?>
     <div class="form-grid">
         <div class="form-row full"><label>Name</label><input name="name" value="<?= e(old('name', $customer?->name ?? '')) ?>" required></div>
@@ -31,7 +34,12 @@
         <div class="form-row full"><label>Address</label><input name="address" value="<?= e(old('address', $customer?->address ?? '')) ?>"></div>
         <div class="form-row"><label><input type="checkbox" name="sms_opt_in" value="1" <?= ($customer?->sms_opt_in ?? 1) ? 'checked' : '' ?>> SMS opt-in</label></div>
     </div>
-    <button class="btn" style="margin-top:16px;">Save</button>
+    <div class="modal-form-actions">
+        <?php if ($isModal): ?>
+            <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+        <?php endif; ?>
+        <button class="btn" type="submit">Save customer</button>
+    </div>
 </form>
 <?php if (!$isModal): ?>
 </div></div>

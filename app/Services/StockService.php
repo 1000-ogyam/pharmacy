@@ -30,7 +30,7 @@ final class StockService
             $batch->update(['quantity_remaining' => max(0, $newQty)]);
         }
 
-        $this->adjustLevel($productId, $branchId, -1 * $this->allocationTotal($allocation));
+        $this->syncLevelFromBatches($productId, $branchId);
     }
 
     public function increase(int $productId, int $branchId, int $batchId, float $quantity): void
@@ -39,7 +39,7 @@ final class StockService
         $batch->update([
             'quantity_remaining' => (float) $batch->quantity_remaining + $quantity,
         ]);
-        $this->adjustLevel($productId, $branchId, $quantity);
+        $this->syncLevelFromBatches($productId, $branchId);
     }
 
     public function adjustLevel(int $productId, int $branchId, float $delta): void
@@ -74,24 +74,90 @@ final class StockService
         return (float) ($row['quantity'] ?? 0);
     }
 
+    /** Total quantity on all batches at the branch (includes non-sellable). */
+    public function onHandQuantity(int $productId, int $branchId): float
+    {
+        $row = Database::instance()->fetch(
+            'SELECT COALESCE(SUM(quantity_remaining), 0) AS qty
+             FROM batches
+             WHERE product_id = :product_id
+               AND branch_id = :branch_id
+               AND deleted_at IS NULL',
+            [':product_id' => $productId, ':branch_id' => $branchId],
+        );
+
+        return (float) ($row['qty'] ?? 0);
+    }
+
+    public function syncLevelFromBatches(int $productId, int $branchId): void
+    {
+        $onHand = round($this->onHandQuantity($productId, $branchId), 4);
+        $level = StockLevel::where('product_id', $productId)
+            ->where('branch_id', $branchId)
+            ->first();
+
+        if (!$level instanceof StockLevel) {
+            if ($onHand <= 0) {
+                return;
+            }
+
+            StockLevel::create([
+                'product_id' => $productId,
+                'branch_id' => $branchId,
+                'quantity' => $onHand,
+                'reorder_level' => 10,
+            ]);
+
+            return;
+        }
+
+        $level->update(['quantity' => max(0, $onHand)]);
+    }
+
+    public function adjustBranchStock(int $productId, int $branchId, string $mode, float $amount, string $sku = ''): void
+    {
+        $amount = max(0, round($amount, 4));
+        if ($amount <= 0) {
+            throw new RuntimeException('Enter a quantity greater than zero.');
+        }
+
+        $mode = strtolower(trim($mode));
+        if ($mode === 'add') {
+            $this->addToAdjustBatch($productId, $branchId, $amount, $sku);
+        } elseif ($mode === 'remove') {
+            $sellable = $this->available($productId, $branchId);
+            if ($amount > $sellable + 0.0001) {
+                throw new RuntimeException(
+                    'Cannot remove more than sellable stock (' . format_qty($sellable) . ' available).'
+                );
+            }
+            $this->decreaseFromSellableBatches($productId, $branchId, $amount);
+        } else {
+            throw new RuntimeException('Choose whether to add or remove stock.');
+        }
+
+        $this->syncLevelFromBatches($productId, $branchId);
+    }
+
     public function setBranchQuantity(int $productId, int $branchId, float $targetQuantity, string $sku = ''): void
     {
         $targetQuantity = max(0, round($targetQuantity, 4));
-        $current = $this->levelQuantity($productId, $branchId);
+        $current = round($this->onHandQuantity($productId, $branchId), 4);
         $delta = round($targetQuantity - $current, 4);
 
         if (abs($delta) < 0.0001) {
+            $this->syncLevelFromBatches($productId, $branchId);
+
             return;
         }
 
         if ($delta > 0) {
             $this->addToAdjustBatch($productId, $branchId, $delta, $sku);
-            $this->adjustLevel($productId, $branchId, $delta);
-            return;
+        } else {
+            $this->decreaseFromSellableBatches($productId, $branchId, abs($delta));
         }
 
-        $this->decreaseFromSellableBatches($productId, $branchId, abs($delta));
-        $this->adjustLevel($productId, $branchId, $delta);
+        $this->syncLevelFromBatches($productId, $branchId);
     }
 
     public function available(int $productId, int $branchId): float

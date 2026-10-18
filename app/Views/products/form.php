@@ -15,7 +15,7 @@
         <?php if ($product): ?>
         <div class="form-row"><label>Generic name</label><input name="generic_name" value="<?= e(old('generic_name', $product->generic_name ?? '')) ?>"></div>
         <?php else: ?>
-        <div class="form-row"><label>Quantity</label><input name="quantity" type="number" min="0" step="1" value="<?= e(old('quantity', '0')) ?>" placeholder="Opening stock at your branch"></div>
+        <div class="form-row"><label>Opening stock (add)</label><input name="quantity" type="number" min="0" step="1" value="<?= e(old('quantity', '0')) ?>" placeholder="Units to add at your branch"></div>
         <?php endif; ?>
         <div class="form-row"><label>Category</label><input name="category" value="<?= e(old('category', $product?->category ?? '')) ?>"></div>
         <div class="form-row"><label>Dosage form</label><input name="dosage_form" value="<?= e(old('dosage_form', $product?->dosage_form ?? '')) ?>"></div>

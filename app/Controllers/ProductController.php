@@ -40,13 +40,20 @@ final class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
         $branchId = $this->branchId();
-        $quantity = (new StockService())->levelQuantity((int) $product->id, $branchId);
+        $stock = new StockService();
+        $onHand = $stock->onHandQuantity((int) $product->id, $branchId);
+        $sellable = $stock->available((int) $product->id, $branchId);
+        $stock->syncLevelFromBatches((int) $product->id, $branchId);
+
+        $returnTo = $this->safeReturnPath((string) $request->query('return_to', ''));
 
         $this->view('products.stock', [
-            'title' => 'Adjust stock',
-            'pageTitle' => 'Adjust stock',
+            'title' => 'Stock adjustment',
+            'pageTitle' => 'Stock adjustment',
             'product' => $product,
-            'quantity' => $quantity,
+            'onHand' => $onHand,
+            'sellable' => $sellable,
+            'returnTo' => $returnTo,
         ]);
     }
 
@@ -58,23 +65,47 @@ final class ProductController extends Controller
 
         $product = Product::findOrFail($id);
         $data = $this->validate($request->all(), [
-            'quantity' => 'required|numeric',
+            'adjustment_mode' => 'required',
+            'amount' => 'required|numeric',
         ]);
 
-        $target = max(0, (float) $data['quantity']);
+        $mode = (string) $data['adjustment_mode'];
+        if (!in_array($mode, ['add', 'remove'], true)) {
+            $this->backWithError('Choose whether to add or remove stock.', '/products/' . $product->id . '/stock');
+        }
+        $amount = (float) $data['amount'];
+        if ($amount <= 0) {
+            $this->backWithError('Enter a quantity greater than zero.', '/products/' . $product->id . '/stock');
+        }
 
         try {
-            (new StockService())->setBranchQuantity(
+            (new StockService())->adjustBranchStock(
                 (int) $product->id,
                 $this->branchId(),
-                $target,
+                $mode,
+                $amount,
                 (string) $product->sku,
             );
         } catch (RuntimeException $e) {
-            $this->backWithError($e->getMessage(), '/products');
+            $this->backWithError($e->getMessage(), '/products/' . $product->id . '/stock');
         }
 
-        $this->backWithSuccess('Stock updated for ' . $product->name . '.', '/products');
+        $verb = $mode === 'remove' ? 'Removed' : 'Added';
+        $redirect = $this->safeReturnPath((string) $request->input('return_to', '')) ?? '/products';
+        $this->backWithSuccess(
+            $verb . ' ' . format_qty($amount) . ' for ' . $product->name . '. Batch and branch stock are in sync.',
+            $redirect,
+        );
+    }
+
+    private function safeReturnPath(string $path): ?string
+    {
+        $path = trim($path);
+        if ($path === '' || !str_starts_with($path, '/') || str_starts_with($path, '//')) {
+            return null;
+        }
+
+        return $path;
     }
 
     public function create(Request $request): never
@@ -152,6 +183,7 @@ final class ProductController extends Controller
                 'quantity' => $quantity,
                 'reorder_level' => 10,
             ]);
+            (new StockService())->syncLevelFromBatches((int) $product->id, (int) $branchId);
         }
 
         $this->backWithSuccess('Product created.', '/products');
@@ -273,10 +305,14 @@ final class ProductController extends Controller
 
         foreach ($result['data'] as $row) {
             $productId = (int) $row['id'];
-            $stockMap[$productId] = (float) ($row['stock_quantity'] ?? 0);
             unset($row['stock_quantity']);
             $products[] = new Product($row);
             $productIds[] = $productId;
+        }
+
+        $stockSvc = new StockService();
+        foreach ($productIds as $productId) {
+            $stockMap[$productId] = $stockSvc->onHandQuantity($productId, $branchId);
         }
 
         return [

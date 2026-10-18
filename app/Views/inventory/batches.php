@@ -1,12 +1,23 @@
 <div class="page-head">
     <div>
         <h2>Batches</h2>
-        <p>Expired and recalled batches cannot be sold — blocked in FefoService / Batch::isSellable().</p>
+        <p>Expired and recalled batches cannot be sold — blocked in FEFO / batch checks.</p>
+        <?php if (!empty($filterProduct)): ?>
+            <p class="muted" style="margin-top:8px;">Filtered: <strong><?= e($filterProduct->name) ?></strong>
+                <a href="<?= e(url('/inventory/batches')) ?>">Show all</a>
+            </p>
+        <?php endif; ?>
+    </div>
+    <div class="page-head-actions table-actions-nowrap">
+        <a class="btn btn-outline btn-sm" href="<?= e(url('/inventory')) ?>">Stock levels</a>
+        <?php if ($canMutate): ?>
+        <a class="btn btn-sm" data-modal data-modal-title="New batch" data-modal-wide href="<?= e(url('/inventory/batches/create')) ?>">New batch</a>
+        <?php endif; ?>
     </div>
 </div>
 <div class="card">
     <div class="table-wrap">
-        <table class="data">
+        <table class="data data-compact">
             <thead><tr><th>Product</th><th>Batch</th><th>Expiry</th><th>Remaining</th><th>Status</th><th></th></tr></thead>
             <tbody>
             <?php foreach ($batches as $batch): ?>
@@ -31,9 +42,13 @@
                             <span class="badge badge-success">Sellable</span>
                         <?php endif; ?>
                     </td>
-                    <td>
+                    <td class="table-actions table-actions-nowrap">
+                        <a class="btn btn-outline btn-xs" data-modal data-modal-title="Batch <?= e($batch['batch_number']) ?>" href="<?= e(url('/inventory/batches/' . $batch['id'])) ?>">View</a>
+                        <?php if ($canMutate): ?>
+                        <a class="btn btn-outline btn-xs" data-modal data-modal-title="Edit batch" data-modal-wide href="<?= e(url('/inventory/batches/' . $batch['id'] . '/edit')) ?>">Edit</a>
                         <?php if (!$recalled): ?>
-                        <button type="button" class="btn btn-danger btn-sm" data-modal-confirm="Recall this batch and block sales?" data-modal-title="Recall batch" data-action="<?= e(url('/inventory/batches/' . $batch['id'] . '/recall')) ?>" data-recall-reason="Manual recall">Recall</button>
+                        <button type="button" class="btn btn-danger btn-xs" data-modal-confirm="Recall this batch and block sales?" data-modal-title="Recall batch" data-action="<?= e(url('/inventory/batches/' . $batch['id'] . '/recall')) ?>" data-recall-reason="Manual recall">Recall</button>
+                        <?php endif; ?>
                         <?php endif; ?>
                     </td>
                 </tr>

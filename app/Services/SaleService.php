@@ -170,6 +170,61 @@ final class SaleService
         }
     }
 
+    /**
+     * @param list<array{product_id: int, batch_id: int, quantity: float, unit_price: float, line_total: float}> $lines
+     */
+    public function recordWholesaleConversion(
+        int $branchId,
+        int $userId,
+        Customer $customer,
+        float $subtotal,
+        float $discount,
+        float $tax,
+        float $total,
+        float $creditUsed,
+        array $lines,
+        string $orderNumber,
+    ): Sale {
+        if ($lines === []) {
+            throw new RuntimeException('Wholesale order has no lines to record as a sale.');
+        }
+
+        $onCustomerCredit = $creditUsed > 0.0001;
+
+        $sale = Sale::create([
+            'branch_id' => $branchId,
+            'customer_id' => $customer->id,
+            'user_id' => $userId,
+            'sale_number' => NumberService::next('WS-', 'sales', 'sale_number'),
+            'sale_type' => 'wholesale',
+            'status' => 'completed',
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'tax' => $tax,
+            'total' => $total,
+            'payment_status' => $onCustomerCredit ? 'credit' : 'invoice',
+            'notes' => 'Wholesale order ' . $orderNumber,
+        ]);
+
+        foreach ($lines as $line) {
+            SaleItem::create([
+                'sale_id' => $sale->id,
+                'product_id' => $line['product_id'],
+                'batch_id' => $line['batch_id'],
+                'quantity' => $line['quantity'],
+                'unit_price' => $line['unit_price'],
+                'discount' => 0,
+                'line_total' => $line['line_total'],
+            ]);
+        }
+
+        $ref = (string) $sale->sale_number;
+        $this->ledger->post($branchId, '4000', 0, $total, 'Wholesale ' . $ref, 'sale', (int) $sale->id);
+        $this->ledger->post($branchId, '1100', $total, 0, 'Wholesale ' . $ref, 'sale', (int) $sale->id);
+
+        return $sale;
+    }
+
     public function voidSale(Sale $sale): void
     {
         if ((string) $sale->status === 'cancelled') {

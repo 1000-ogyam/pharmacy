@@ -156,9 +156,17 @@ final class PosController extends Controller
     private function catalogueSql(int $branchId, string $q): array
     {
         $sql = 'SELECT p.id, p.sku, p.name, p.generic_name, p.barcode, p.strength, p.dosage_form,
-                       COALESCE(sl.quantity, 0) AS stock
+                       COALESCE((
+                           SELECT SUM(b.quantity_remaining)
+                           FROM batches b
+                           WHERE b.product_id = p.id
+                             AND b.branch_id = :b
+                             AND b.deleted_at IS NULL
+                             AND b.is_recalled = 0
+                             AND b.expiry_date > CURDATE()
+                             AND b.quantity_remaining > 0
+                       ), 0) AS stock
                 FROM products p
-                LEFT JOIN stock_levels sl ON sl.product_id = p.id AND sl.branch_id = :b AND sl.deleted_at IS NULL
                 WHERE p.deleted_at IS NULL AND p.is_active = 1';
         $params = [':b' => $branchId];
 
